@@ -97,16 +97,17 @@ function side(a, b, c, d)
 {
 	//define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
     var vertices = [
-  		//corners of the train:
-  		vec4(-8229.5,- 680, 1473,1),
-  		vec4( 8229.5,- 680, 1473,1),
-  		vec4(-8229.5,- 680,-1473,1),
-  		vec4( 8229.5,- 680,-1473,1),
-  		vec4(-8229.5, 1848, 1473,1),
-  		vec4( 8229.5, 1848, 1473,1),
-  		vec4(-8229.5, 1848,-1473,1),
-  		vec4( 8229.5, 1848,-1473,1),
-  		
+  		//corners of the D78 DM train:
+        //Bottom corners
+  		vec4(-9312.5,-1027, 581,1),
+  		vec4( 9059.5,-1027, 581,1),
+  		vec4(-9312.5,-1027,-581,1),
+  		vec4( 9059.5,-1027,-581,1),
+        //Top corners
+  		vec4(-9312.5, 1027, 529,1),
+  		vec4( 9059.5, 1027, 529,1),
+  		vec4(-9312.5, 1027,-529,1),
+  		vec4( 9059.5, 1027,-529,1)
     ];
 
     var vertexColors = [
@@ -155,16 +156,16 @@ buildBogie(number){
 	var vertices = [
 		//wheel center points, diameter is 915
         //left bogie
-  		vec4(-6699.5,-1390.5, 717.5,1), //front left wheel
-  		vec4(-4413.5,-1390.5, 717.5,1), //right of front left wheel
-  		vec4(-6699.5,-1390.5,-717.5,1), //back left wheel
-  		vec4(-4413.5,-1390.5,-717.5,1), //right of back left wheel
+  		vec4(-7086.5,-1743, 717.5,1), //front left wheel
+  		vec4(-4798.5,-1743, 717.5,1), //right of front left wheel
+  		vec4(-6699.5,-1743,-717.5,1), //back left wheel
+  		vec4(-4413.5,-1743,-717.5,1), //right of back left wheel
 
   		//right bogie
-  		vec4( 4413.5,-1390.5, 717.5,1), //left of front right wheel
-  		vec4( 6699.5,-1390.5, 717.5,1), //front right wheel
-  		vec4( 4413.5,-1390.5,-717.5,1), //left of back right wheel
-  		vec4( 6699.5,-1390.5,-717.5,1)  //back right wheel
+  		vec4( 4798.5,-1743, 717.5,1), //left of front right wheel
+  		vec4( 7086.5,-1743, 717.5,1), //front right wheel
+  		vec4( 4798.5,-1743,-717.5,1), //left of back right wheel
+  		vec4( 7086.5,-1743,-717.5,1)  //back right wheel
     ];
     var vertexColors = [
         [ 0.0, 0.0, 0.0, 1.0 ],  // black
@@ -179,7 +180,7 @@ buildBogie(number){
     ];
     for(var i = number*4; i<4*(number+1); i++){
     	var wheel = new Object();
-    	wheel.radius = 457.5;
+    	wheel.radius = 394;
     	wheel.location = vertices[i];
     	wheel.color = vertexColors[0];
     	wheel.sideVertices = [];
@@ -193,24 +194,24 @@ buildBogie(number){
     //figure out correct vertices
     vertices = [
     	//left bogie
-    	vec4(-7157,-1620,716,1), 
-    	vec4(-7157,- 680,716,1), 
-    	vec4(-3956,- 680,716,1), 
-    	vec4(-3956,-1620,716,1), 
-    	vec4(-7157,-1620,-716,1), 
-    	vec4(-7157,- 680,-716,1), 
-    	vec4(-3956,- 680,-716,1), 
-    	vec4(-3956,-1620,-716,1), 
+    	vec4(-7480.5,-1027, 716,1), 
+    	vec4(-4404.5,-1027, 716,1), 
+    	vec4(-7480.5,-1940, 716,1), 
+    	vec4(-4404.5,-1940, 716,1), 
+        vec4(-7480.5,-1027,-716,1), 
+        vec4(-4404.5,-1027,-716,1), 
+        vec4(-7480.5,-1940,-716,1), 
+        vec4(-4404.5,-1940,-716,1),
 
     	//right bogie
-    	vec4( 3956,- 680,716,1), 
-    	vec4( 3956,-1620,716,1), 
-    	vec4( 7157,-1620,716,1), 
-    	vec4( 7157,- 680,716,1), 
-    	vec4( 3956,- 680,-716,1), 
-    	vec4( 3956,-1620,-716,1), 
-    	vec4( 7157,-1620,-716,1), 
-    	vec4( 7157,- 680,-716,1)
+        vec4( 7480.5,-1027, 716,1), 
+        vec4( 4404.5,-1027, 716,1), 
+        vec4( 7480.5,-1940, 716,1), 
+        vec4( 4404.5,-1940, 716,1), 
+        vec4( 7480.5,-1027,-716,1), 
+        vec4( 4404.5,-1027,-716,1), 
+        vec4( 7480.5,-1940,-716,1), 
+        vec4( 4404.5,-1940,-716,1)
     ];
 
     quadBogie( 1+8*number, 0+8*number, 3+8*number, 2+8*number ,vertices);

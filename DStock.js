@@ -3,7 +3,7 @@
 
 var NumVertices = 0;
 var aspect = 10000;
-var eye = vec3(0,0,10000);		var at = vec3(0,0,1027);     	var up = vec3(0,1,0);
+var eye = vec3(0,0,0);		var at = vec3(0,0,1027);     	var up = vec3(0,1,0);
 var ytop = aspect; 	var bottom = -1*aspect; 	var left = -1*aspect; var right = aspect;
 var near = -2000;	var far = 20000;
 
@@ -118,20 +118,249 @@ function buildSkeleton()
 	//Build a Specific Side
     side( 1, 0, 2, 3 ); //bottom
     
-    side(10,11, 7,15 ); //top back side
-    side(13, 3,11,10 ); //bottom back side
+    // side(10,11, 7,15 ); //top back side
+    // side(13, 3,11,10 ); //bottom back side
     side(2, 13,15, 6 ); //red side back
 
     side( 3, 1, 9,11 ); //bottom rear
     side(11, 9, 5, 7 ); //top rear
     side( 6, 2, 0, 4 ); //front
     side( 4, 6, 7, 5 ); //top
-    side( 5,14, 8, 9 ); //top front side
-    side( 9, 8,12, 1 ); //bottom front side
+    // side( 5,14, 8, 9 ); //top front side
+    // side( 9, 8,12, 1 ); //bottom front side
     side( 0,12,14, 4 ); //cab front side
 
-    // first();
+    // front side first part
+    first( 2,12,14,0 );
+    first(12,13, 5,4 );
+    first( 6, 7,15,14);
+    first(13,20,21,15);
+    first( 0,21,24,26); //blue stripe front
+    //window far left front
+    first( 4, 5, 7, 6);
 
+    // back side first part
+    first( 3,16,18, 1);
+    first(16,17, 9, 8);
+    first(10,11,19,18);
+    first(17,22,23,19);
+    first( 1,23,25,27); //blue stripe back
+    //window far left back
+    first( 8, 9,11,10);
+
+    //Passenger-Cab Wall Passenger Side
+    first( 3, 2,26,27);
+
+    // front side first part
+    firstInterior( 2,12,14,0 );
+    firstInterior(12,13, 5,4 );
+    firstInterior( 6, 7,15,14);
+    firstInterior(13,20,21,15);
+    //window far left front
+    firstInterior( 4, 5, 7, 6);
+
+    // back side first part
+    firstInterior( 3,16,18, 1);
+    firstInterior(16,17, 9, 8);
+    firstInterior(10,11,19,18);
+    firstInterior(17,22,23,19);
+    //window far left back
+    firstInterior( 8, 9,11,10);
+
+    //First Passenger Door doorway left front and back
+    firstInterior(24,20,21,25);
+    firstInterior(26,22,23,27);
+
+    //First Part Seat Sides
+    firstSeating(16,20,22,12);
+    firstSeating(14,18,16,12);
+
+    //First Part Textured Seats
+    firstSeating(22,20,8,10);
+    firstSeating(20,16,4,8);
+    firstSeating(16,18,6,4);
+    firstSeating(18,14,2,6);
+
+
+    //First Part Seat Sides
+    firstSeating(17,21,23,13);
+    firstSeating(15,19,17,13);
+
+    //First Part Textured Seats
+    firstSeating(23,21,9,11);
+    firstSeating(21,17,5,9);
+    firstSeating(17,19,7,5);
+    firstSeating(19,15,3,7);
+}
+
+function firstSeating(a, b, c, d)
+{
+    var zfI = 1000;
+    var zfS = 950;
+    var zfsE = 487.95;
+    var xfIL = -8278.48;
+    var xfIR = -6598.5;
+    //define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
+    var vertices = [
+        //area between cab door and first door D78 DM train:
+        //cab door cutout Interior vertices 0-3
+        vec4(xfIL,-977   , zfI,1),
+        vec4(xfIL,-977   ,-zfI,1),
+        vec4(xfIL,-115.28, zfI,1),
+        vec4(xfIL,-115.28,-zfI,1),
+
+        //cab door cutout seatback vertices 4-7
+        vec4(xfIL,-503.92, zfS,1),
+        vec4(xfIL,-503.92,-zfS,1), //butt of seat level
+        vec4(xfIL,-115.28, zfS,1), //top of seat
+        vec4(xfIL,-115.28,-zfS,1),
+
+        //cab door cutout seatfront vertices 8-11
+        vec4(xfIL,-503.92, zfsE,1),
+        vec4(xfIL,-503.92,-zfsE,1), //butt of seat level
+        vec4(xfIL,-977   , zfsE,1), //bottom of seat
+        vec4(xfIL,-977   ,-zfsE,1),
+
+        //First Passenger door cab side vertices front and back interior 12-15
+        vec4(xfIR,-977   , zfI,1),
+        vec4(xfIR,-977   ,-zfI,1),
+        vec4(xfIR,-115.28, zfI,1),
+        vec4(xfIR,-115.28,-zfI,1),
+
+        //First Passenger door cab side vertices front and back interior 16-19
+        vec4(xfIR,-503.92, zfS,1),
+        vec4(xfIR,-503.92,-zfS,1),
+        vec4(xfIR,-115.28, zfS,1),
+        vec4(xfIR,-115.28,-zfS,1),
+
+        // First Passenger door cab side vertices front and back seat front 20-23
+        vec4(xfIR,-503.92, zfsE,1),
+        vec4(xfIR,-503.92,-zfsE,1),
+        vec4(xfIR,-977   , zfsE,1),
+        vec4(xfIR,-977   ,-zfsE,1)
+
+    ];
+
+    var vertexColors = [
+        [ 0.0, 0.0, 0.0, 1.0 ],  // black
+        [ 0.0, 0.0, 1.0, 1.0 ],  // blue
+        [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
+        [ 1.0, 0.0, 0.0, 1.0 ],  // red
+        [ 0.0, 1.0, 0.0, 1.0 ],  // green
+        [ 1.0, 1.0, 1.0, 1.0 ],   // white
+        [ 1.0, .65, 0.0, 1.0 ],  //orange
+        [240/256,240/256,240/256, 1.0 ]  // doorway
+
+    ];
+
+    var side = new Object();
+    side.vertices = [];
+    side.colors = [];
+    // We need to parition the quad into two triangles in order for
+    // WebGL to be able to render it.  In this case, we create two
+    // triangles from the quad indices
+    var indices = [ a, b, c, a, c, d ];
+    for ( var i = 0; i < indices.length; ++i ) {
+        side.vertices.push(vertices[indices[i]]);
+        totpoints.push( vertices[indices[i]] );
+        if(d==12||d==13){
+            side.colors.push(vertexColors[0]);
+            totcolors.push(vertexColors[0]);
+        }
+        else{
+            side.colors.push(vertexColors[6])
+            totcolors.push(vertexColors[6]);
+        }
+    }
+    sides.push(side);
+}
+
+
+function firstInterior(a, b, c, d)
+{
+    var zfI = 1000;
+    //define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
+    var vertices = [
+        //area between cab door and first door D78 DM train:
+        //cab door cutout vertices 0-3
+        vec4(-8278.5,-977, zfI,1),
+        vec4(-8278.5,-977,-zfI,1),
+        vec4(-8278.5, 1027, zfI,1),
+        vec4(-8278.5, 1027,-zfI,1),
+
+        //front side window vertices 4-7
+        vec4(-7590.12,855.83, zfI,1),
+        vec4(-7016,   855.83, zfI,1),
+        vec4(-7590.12,  0,    zfI,1),
+        vec4(-7016,     0,    zfI,1),
+
+        // back side window vertices 8-11
+        vec4(-7590.12,855.83,-zfI,1),
+        vec4(-7016,   855.83,-zfI,1),
+        vec4(-7590.12,  0   ,-zfI,1),
+        vec4(-7016,     0   ,-zfI,1),
+
+        //front side above/below window vertices 12-15
+        vec4(-7590.12,1027, zfI,1),
+        vec4(-7016,   1027, zfI,1),
+        vec4(-7590.12,-977, zfI,1),
+        vec4(-7016,   -977, zfI,1),
+
+        //back side above/below window vertices 16-19
+        vec4(-7590.12,1027,-zfI,1),
+        vec4(-7016,   1027,-zfI,1),
+        vec4(-7590.12,-977,-zfI,1),
+        vec4(-7016,   -977,-zfI,1),
+
+        //First Passenger door cab side vertices front and back interior 20-23
+        vec4(-6598.5,1027, zfI,1),
+        vec4(-6598.5,-977, zfI,1),
+        vec4(-6598.5,1027,-zfI,1),
+        vec4(-6598.5,-977,-zfI,1),
+
+        //First Passenger door cab side vertices front and back 24-27
+        vec4(-6598.5,1027, 1075.2,1),
+        vec4(-6598.5,-977, 1147.2,1),
+        vec4(-6598.5,1027,-1075.2,1),
+        vec4(-6598.5,-977,-1147.2,1)
+    ];
+
+    var vertexColors = [
+        [ 0.0, 0.0, 0.0, 1.0 ],  // black
+        [ 0.0, 0.0, 1.0, 1.0 ],  // blue
+        [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
+        [ 1.0, 0.0, 0.0, 1.0 ],  // red
+        [ 0.0, 1.0, 0.0, 1.0 ],  // green
+        [ 1.0, 1.0, 1.0, 1.0 ],   // white
+        [ 1.0, .65, 0.0, 1.0 ],  //orange
+        [240/256,240/256,240/256, 1.0 ]  // doorway
+
+    ];
+
+    var side = new Object();
+    side.vertices = [];
+    side.colors = [];
+    // We need to parition the quad into two triangles in order for
+    // WebGL to be able to render it.  In this case, we create two
+    // triangles from the quad indices
+    var indices = [ a, b, c, a, c, d ];
+    for ( var i = 0; i < indices.length; ++i ) {
+        side.vertices.push(vertices[indices[i]]);
+        totpoints.push( vertices[indices[i]] );
+        if(a==4||a==8){
+            side.colors.push(vertexColors[0]);
+            totcolors.push(vertexColors[0]);
+        }
+        else if(a==24||a==26){
+            side.colors.push(vertexColors[7]);
+            totcolors.push(vertexColors[7]);
+        }
+        else{
+            side.colors.push(vertexColors[5])
+            totcolors.push(vertexColors[5]);
+        }
+    }
+    sides.push(side);
 }
 
 function first(a, b, c, d)
@@ -140,8 +369,8 @@ function first(a, b, c, d)
     var vertices = [
         //area between cab door and first door D78 DM train:
         //cab door cutout vertices 0-3
-        vec4(-8278.5,-977, 1147.2,1),
-        vec4(-8278.5,-977,-1147.2,1),
+        vec4(-8278.5,-557, 1132.11,1),
+        vec4(-8278.5,-557,-1132.11,1),
         vec4(-8278.5, 1027, 1075.2,1),
         vec4(-8278.5, 1027,-1075.2,1),
 
@@ -160,16 +389,26 @@ function first(a, b, c, d)
         //front side above/below window vertices 12-15
         vec4(-7590.12,1027, 1075.2,1),
         vec4(-7016,   1027, 1075.2,1),
-        vec4(-7590.12,-977, 1147.2,1),
-        vec4(-7016,   -977, 1147.2,1),
+        vec4(-7590.12,-557, 1132.11,1),
+        vec4(-7016,   -557, 1132.11,1),
 
         //back side above/below window vertices 16-19
         vec4(-7590.12,1027,-1075.2,1),
         vec4(-7016,   1027,-1075.2,1),
-        vec4(-7590.12,-977,-1147.2,1),
-        vec4(-7016,   -977,-1147.2,1)
+        vec4(-7590.12,-557,-1132.11,1),
+        vec4(-7016,   -557,-1132.11,1),
 
+        //First Passenger door cab side vertices front and back 20-23
+        vec4(-6598.5,1027, 1075.2,1),
+        vec4(-6598.5,-557, 1132.11,1),
+        vec4(-6598.5,1027,-1075.2,1),
+        vec4(-6598.5,-557,-1132.11,1),
 
+        //blue stripe vertices 24-27
+        vec4(-6598.5,-977, 1147.2,1),
+        vec4(-6598.5,-977,-1147.2,1),
+        vec4(-8278.5,-977, 1147.2,1),
+        vec4(-8278.5,-977,-1147.2,1)
 
     ];
 
@@ -195,11 +434,11 @@ function first(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        if(a==6||a==0||a==2){
-            side.colors.push(vertexColors[3]);
-            totcolors.push(vertexColors[3]);
+        if(a==4||a==8){
+            side.colors.push(vertexColors[0]);
+            totcolors.push(vertexColors[0]);
         }
-        else if(a==9||a==13||a==3){
+        else if(a==0||a==1){
             side.colors.push(vertexColors[1]);
             totcolors.push(vertexColors[1]);
         }
@@ -609,6 +848,9 @@ function rotateHoriz(){
         else{
             ytop = 3000; bottom = -3000; left = -3000; right = 3000; near = -3000; far = 20000;
         }
+//test line below delete later
+        ytop = 3000; bottom = -3000; left = -3000; right = 3000; near = -3000; far = 20000;
+
     }
 }
 

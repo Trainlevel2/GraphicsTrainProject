@@ -3,7 +3,7 @@
 
 var NumVertices = 0;
 var aspect = 10000;
-var eye = vec3(0,0,0);		var at = vec3(0,0,1027);     	var up = vec3(0,1,0);
+var eye = vec3(0,0,10000);		var at = vec3(0,0,1027);     	var up = vec3(0,1,0);
 var ytop = aspect; 	var bottom = -1*aspect; 	var left = -1*aspect; var right = aspect;
 var near = -2000;	var far = 20000;
 
@@ -130,76 +130,173 @@ function buildSkeleton()
     // side( 9, 8,12, 1 ); //bottom front side
     side( 0,12,14, 4 ); //cab front side
 
+    var x1 = -8243.2;
+    var x11= -7903;
+    var x12= x11+729.05;
+    var x2 = x12+466.59;
+
     // front side first part
-    first( 2,12,14,0 );
-    first(12,13, 5,4 );
-    first( 6, 7,15,14);
-    first(13,20,21,15);
-    first( 0,21,24,26); //blue stripe front
+    sidePart( 2,12,14,0 , x1, x11, x12, x2);
+    sidePart(12,13, 5,4 , x1, x11, x12, x2);
+    sidePart( 6, 7,15,14, x1, x11, x12, x2);
+    sidePart(13,20,21,15, x1, x11, x12, x2);
+    sidePart( 0,21,24,26, x1, x11, x12, x2); //blue stripe front
     //window far left front
-    first( 4, 5, 7, 6);
+    sidePart( 4, 5, 7, 6, x1, x11, x12, x2);
 
     // back side first part
-    first( 3,16,18, 1);
-    first(16,17, 9, 8);
-    first(10,11,19,18);
-    first(17,22,23,19);
-    first( 1,23,25,27); //blue stripe back
+    sidePart( 3,16,18, 1, x1, x11, x12, x2);
+    sidePart(16,17, 9, 8, x1, x11, x12, x2);
+    sidePart(10,11,19,18, x1, x11, x12, x2);
+    sidePart(17,22,23,19, x1, x11, x12, x2);
+    sidePart( 1,23,25,27, x1, x11, x12, x2); //blue stripe back
     //window far left back
-    first( 8, 9,11,10);
+    sidePart( 8, 9,11,10, x1, x11, x12, x2);
 
     //Passenger-Cab Wall Passenger Side
-    first( 3, 2,26,27);
+    sidePart( 3, 2,26,27, x1, x11, x12, x2);
 
     // front side first part
-    firstInterior( 2,12,14,0 );
-    firstInterior(12,13, 5,4 );
-    firstInterior( 6, 7,15,14);
-    firstInterior(13,20,21,15);
+    sidePartInterior( 2,12,14,0 , x1, x11, x12, x2);
+    sidePartInterior(12,13, 5,4 , x1, x11, x12, x2);
+    sidePartInterior( 6, 7,15,14, x1, x11, x12, x2);
+    sidePartInterior(13,20,21,15, x1, x11, x12, x2);
     //window far left front
-    firstInterior( 4, 5, 7, 6);
+    sidePartInterior( 4, 5, 7, 6, x1, x11, x12, x2);
 
     // back side first part
-    firstInterior( 3,16,18, 1);
-    firstInterior(16,17, 9, 8);
-    firstInterior(10,11,19,18);
-    firstInterior(17,22,23,19);
+    sidePartInterior( 3,16,18, 1, x1, x11, x12, x2);
+    sidePartInterior(16,17, 9, 8, x1, x11, x12, x2);
+    sidePartInterior(10,11,19,18, x1, x11, x12, x2);
+    sidePartInterior(17,22,23,19, x1, x11, x12, x2);
     //window far left back
-    firstInterior( 8, 9,11,10);
+    sidePartInterior( 8, 9,11,10, x1, x11, x12, x2);
 
     //First Passenger Door doorway left front and back
-    firstInterior(24,20,21,25);
-    firstInterior(26,22,23,27);
+    sidePartInterior(24,20,21,25, x1, x11, x12, x2);
+    sidePartInterior(26,22,23,27, x1, x11, x12, x2);
+
+    x1 = -8278.48;
 
     //First Part Seat Sides
-    firstSeating(16,20,22,12);
-    firstSeating(14,18,16,12);
+    seating(16,20,22,12,x1,x2);
+    seating(14,18,16,12,x1,x2);
+    //seating(2,6,4,0,x1,x2);
+    //seating(4,8,10,0,x1,x2);
 
     //First Part Textured Seats
-    firstSeating(22,20,8,10);
-    firstSeating(20,16,4,8);
-    firstSeating(16,18,6,4);
-    firstSeating(18,14,2,6);
+    seating(22,20,8,10,x1,x2);
+    seating(20,16,4,8,x1,x2);
+    seating(16,18,6,4,x1,x2);
+    seating(18,14,2,6,x1,x2);
 
 
     //First Part Seat Sides
-    firstSeating(17,21,23,13);
-    firstSeating(15,19,17,13);
+    seating(17,21,23,13,x1,x2);
+    seating(15,19,17,13,x1,x2);
+    //seating(3,7,5,1,x1,x2);
+    //seating(5,9,11,1,x1,x2);
 
     //First Part Textured Seats
-    firstSeating(23,21,9,11);
-    firstSeating(21,17,5,9);
-    firstSeating(17,19,7,5);
-    firstSeating(19,15,3,7);
+    seating(23,21,9,11,x1,x2);
+    seating(21,17,5,9,x1,x2);
+    seating(17,19,7,5,x1,x2);
+    seating(19,15,3,7,x1,x2);
+
+    //FIRST PART DONE WOO
+
+    //SECOND PART--TO LAST PART
+    
+    for(var i = 0; i<4; i++){
+
+        x1 = x2+1166.47;
+        x11= x1+583.24;
+        x12= x11+1846.92;
+        x2 = x12+486.03;
+
+        if(i==3){
+            x12 = x11+1263.7;
+            x2 = 9058;
+        }
+
+        // front side first part
+        sidePart( 2,12,14,0 , x1, x11, x12, x2);
+        sidePart(12,13, 5,4 , x1, x11, x12, x2);
+        sidePart( 6, 7,15,14, x1, x11, x12, x2);
+        sidePart(13,20,21,15, x1, x11, x12, x2);
+        sidePart( 0,21,24,26, x1, x11, x12, x2); //blue stripe front
+        //window far left front
+        sidePart( 4, 5, 7, 6, x1, x11, x12, x2);
+
+        // back side first part
+        sidePart( 3,16,18, 1, x1, x11, x12, x2);
+        sidePart(16,17, 9, 8, x1, x11, x12, x2);
+        sidePart(10,11,19,18, x1, x11, x12, x2);
+        sidePart(17,22,23,19, x1, x11, x12, x2);
+        sidePart( 1,23,25,27, x1, x11, x12, x2); //blue stripe back
+        //window far left back
+        sidePart( 8, 9,11,10, x1, x11, x12, x2);
+
+        // front side first part
+        sidePartInterior( 2,12,14,0 , x1, x11, x12, x2);
+        sidePartInterior(12,13, 5,4 , x1, x11, x12, x2);
+        sidePartInterior( 6, 7,15,14, x1, x11, x12, x2);
+        sidePartInterior(13,20,21,15, x1, x11, x12, x2);
+        //window far left front
+        sidePartInterior( 4, 5, 7, 6, x1, x11, x12, x2);
+
+        // back side first part
+        sidePartInterior( 3,16,18, 1, x1, x11, x12, x2);
+        sidePartInterior(16,17, 9, 8, x1, x11, x12, x2);
+        sidePartInterior(10,11,19,18, x1, x11, x12, x2);
+        sidePartInterior(17,22,23,19, x1, x11, x12, x2);
+        //window far left back
+        sidePartInterior( 8, 9,11,10, x1, x11, x12, x2);
+
+        //First Passenger Door doorway left front and back
+        sidePartInterior(24,20,21,25, x1, x11, x12, x2);
+        sidePartInterior(26,22,23,27, x1, x11, x12, x2);
+
+        //Other Passenger Door doorway left front and back
+        sidePartInterior(28,2,0,29, x1, x11, x12, x2);
+        sidePartInterior(30,3,1,31, x1, x11, x12, x2);
+
+        //First Part Seat Sides
+        seating(16,20,22,12,x1,x2);
+        seating(14,18,16,12,x1,x2);
+        seating(2,6,4,0,x1,x2);
+        seating(4,8,10,0,x1,x2);
+
+        //First Part Textured Seats
+        seating(22,20,8,10,x1,x2);
+        seating(20,16,4,8,x1,x2);
+        seating(16,18,6,4,x1,x2);
+        seating(18,14,2,6,x1,x2);
+
+
+        //First Part Seat Sides
+        seating(17,21,23,13,x1,x2);
+        seating(15,19,17,13,x1,x2);
+        seating(3,7,5,1,x1,x2);
+        seating(5,9,11,1,x1,x2);
+
+        //First Part Textured Seats
+        seating(23,21,9,11,x1,x2);
+        seating(21,17,5,9,x1,x2);
+        seating(17,19,7,5,x1,x2);
+        seating(19,15,3,7,x1,x2);
+
+    }
+
 }
 
-function firstSeating(a, b, c, d)
+function seating(a, b, c, d, xfIL, xfIR)
 {
     var zfI = 1000;
     var zfS = 950;
     var zfsE = 487.95;
-    var xfIL = -8278.48;
-    var xfIR = -6598.5;
+    // var xfIL = -8278.48;
+    // var xfIR = -6598.5;
     //define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
     var vertices = [
         //area between cab door and first door D78 DM train:
@@ -263,7 +360,7 @@ function firstSeating(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        if(d==12||d==13){
+        if(d==12||d==13||d==0||d==1){
             side.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
         }
@@ -276,53 +373,63 @@ function firstSeating(a, b, c, d)
 }
 
 
-function firstInterior(a, b, c, d)
-{
+function sidePartInterior(a, b, c, d, x1, x11, x12, x2)
+{    
+    // var x1 = -8278.5;
+    // var x11= -7590.12;
+    // var x12= -7016;
+    // var x2 = -6598.5;
     var zfI = 1000;
     //define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
     var vertices = [
         //area between cab door and first door D78 DM train:
         //cab door cutout vertices 0-3
-        vec4(-8278.5,-977, zfI,1),
-        vec4(-8278.5,-977,-zfI,1),
-        vec4(-8278.5, 1027, zfI,1),
-        vec4(-8278.5, 1027,-zfI,1),
+        vec4(x1,-977, zfI,1),
+        vec4(x1,-977,-zfI,1),
+        vec4(x1, 1027, zfI,1),
+        vec4(x1, 1027,-zfI,1),
 
         //front side window vertices 4-7
-        vec4(-7590.12,855.83, zfI,1),
-        vec4(-7016,   855.83, zfI,1),
-        vec4(-7590.12,  0,    zfI,1),
-        vec4(-7016,     0,    zfI,1),
+        vec4(x11,855.83, zfI,1),
+        vec4(x12,   855.83, zfI,1),
+        vec4(x11,  0,    zfI,1),
+        vec4(x12,     0,    zfI,1),
 
         // back side window vertices 8-11
-        vec4(-7590.12,855.83,-zfI,1),
-        vec4(-7016,   855.83,-zfI,1),
-        vec4(-7590.12,  0   ,-zfI,1),
-        vec4(-7016,     0   ,-zfI,1),
+        vec4(x11,855.83,-zfI,1),
+        vec4(x12,   855.83,-zfI,1),
+        vec4(x11,  0   ,-zfI,1),
+        vec4(x12,     0   ,-zfI,1),
 
         //front side above/below window vertices 12-15
-        vec4(-7590.12,1027, zfI,1),
-        vec4(-7016,   1027, zfI,1),
-        vec4(-7590.12,-977, zfI,1),
-        vec4(-7016,   -977, zfI,1),
+        vec4(x11,1027, zfI,1),
+        vec4(x12,   1027, zfI,1),
+        vec4(x11,-977, zfI,1),
+        vec4(x12,   -977, zfI,1),
 
         //back side above/below window vertices 16-19
-        vec4(-7590.12,1027,-zfI,1),
-        vec4(-7016,   1027,-zfI,1),
-        vec4(-7590.12,-977,-zfI,1),
-        vec4(-7016,   -977,-zfI,1),
+        vec4(x11,1027,-zfI,1),
+        vec4(x12,   1027,-zfI,1),
+        vec4(x11,-977,-zfI,1),
+        vec4(x12,   -977,-zfI,1),
 
         //First Passenger door cab side vertices front and back interior 20-23
-        vec4(-6598.5,1027, zfI,1),
-        vec4(-6598.5,-977, zfI,1),
-        vec4(-6598.5,1027,-zfI,1),
-        vec4(-6598.5,-977,-zfI,1),
+        vec4(x2,1027, zfI,1),
+        vec4(x2,-977, zfI,1),
+        vec4(x2,1027,-zfI,1),
+        vec4(x2,-977,-zfI,1),
 
         //First Passenger door cab side vertices front and back 24-27
-        vec4(-6598.5,1027, 1075.2,1),
-        vec4(-6598.5,-977, 1147.2,1),
-        vec4(-6598.5,1027,-1075.2,1),
-        vec4(-6598.5,-977,-1147.2,1)
+        vec4(x2,1027, 1075.2,1),
+        vec4(x2,-977, 1147.2,1),
+        vec4(x2,1027,-1075.2,1),
+        vec4(x2,-977,-1147.2,1),
+
+        //Other Passenger door cab side vertices front and back 28-31
+        vec4(x1,1027, 1075.2,1),
+        vec4(x1,-977, 1147.2,1),
+        vec4(x1,1027,-1075.2,1),
+        vec4(x1,-977,-1147.2,1)
     ];
 
     var vertexColors = [
@@ -356,59 +463,59 @@ function firstInterior(a, b, c, d)
             totcolors.push(vertexColors[7]);
         }
         else{
-            side.colors.push(vertexColors[5])
+            side.colors.push(vertexColors[5]);
             totcolors.push(vertexColors[5]);
         }
     }
     sides.push(side);
 }
 
-function first(a, b, c, d)
+function sidePart(a, b, c, d, x1, x11, x12, x2)
 {
     //define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
     var vertices = [
         //area between cab door and first door D78 DM train:
         //cab door cutout vertices 0-3
-        vec4(-8278.5,-557, 1132.11,1),
-        vec4(-8278.5,-557,-1132.11,1),
-        vec4(-8278.5, 1027, 1075.2,1),
-        vec4(-8278.5, 1027,-1075.2,1),
+        vec4(x1,-557, 1132.11,1),
+        vec4(x1,-557,-1132.11,1),
+        vec4(x1, 1027, 1075.2,1),
+        vec4(x1, 1027,-1075.2,1),
 
         //front side window vertices 4-7
-        vec4(-7590.12,855.83, 1081.35,1),
-        vec4(-7016,   855.83, 1081.35,1),
-        vec4(-7590.12,  0,    1112.1,1),
-        vec4(-7016,     0,    1112.1,1),
+        vec4(x11,855.83, 1081.35,1),
+        vec4(x12,   855.83, 1081.35,1),
+        vec4(x11,  0,    1112.1,1),
+        vec4(x12,     0,    1112.1,1),
 
         // back side window vertices 8-11
-        vec4(-7590.12,855.83,-1081.35,1),
-        vec4(-7016,   855.83,-1081.35,1),
-        vec4(-7590.12,  0   ,-1112.1,1),
-        vec4(-7016,     0   ,-1112.1,1),
+        vec4(x11,855.83,-1081.35,1),
+        vec4(x12,   855.83,-1081.35,1),
+        vec4(x11,  0   ,-1112.1,1),
+        vec4(x12,     0   ,-1112.1,1),
 
         //front side above/below window vertices 12-15
-        vec4(-7590.12,1027, 1075.2,1),
-        vec4(-7016,   1027, 1075.2,1),
-        vec4(-7590.12,-557, 1132.11,1),
-        vec4(-7016,   -557, 1132.11,1),
+        vec4(x11,1027, 1075.2,1),
+        vec4(x12,   1027, 1075.2,1),
+        vec4(x11,-557, 1132.11,1),
+        vec4(x12,   -557, 1132.11,1),
 
         //back side above/below window vertices 16-19
-        vec4(-7590.12,1027,-1075.2,1),
-        vec4(-7016,   1027,-1075.2,1),
-        vec4(-7590.12,-557,-1132.11,1),
-        vec4(-7016,   -557,-1132.11,1),
+        vec4(x11,1027,-1075.2,1),
+        vec4(x12,   1027,-1075.2,1),
+        vec4(x11,-557,-1132.11,1),
+        vec4(x12,   -557,-1132.11,1),
 
         //First Passenger door cab side vertices front and back 20-23
-        vec4(-6598.5,1027, 1075.2,1),
-        vec4(-6598.5,-557, 1132.11,1),
-        vec4(-6598.5,1027,-1075.2,1),
-        vec4(-6598.5,-557,-1132.11,1),
+        vec4(x2,1027, 1075.2,1),
+        vec4(x2,-557, 1132.11,1),
+        vec4(x2,1027,-1075.2,1),
+        vec4(x2,-557,-1132.11,1),
 
         //blue stripe vertices 24-27
-        vec4(-6598.5,-977, 1147.2,1),
-        vec4(-6598.5,-977,-1147.2,1),
-        vec4(-8278.5,-977, 1147.2,1),
-        vec4(-8278.5,-977,-1147.2,1)
+        vec4(x2,-977, 1147.2,1),
+        vec4(x2,-977,-1147.2,1),
+        vec4(x1,-977, 1147.2,1),
+        vec4(x1,-977,-1147.2,1)
 
     ];
 
@@ -453,6 +560,7 @@ function first(a, b, c, d)
 //WIP Method to generate vertices for making the side of a cube
 function side(a, b, c, d)
 {
+    var xred = -8875.1;
     //define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
     var vertices = [
         //corners of the D78 DM train:
@@ -467,15 +575,15 @@ function side(a, b, c, d)
         vec4(-9312.5, 1027,-1075.2,1),
         vec4( 9059.5, 1027,-1075.2,1),
         //blue stripe vertices   8-11
-        vec4(-8963.5,-557, 1132.11,1),
+        vec4( xred,-557, 1132.11,1),
         vec4( 9059.5,-557, 1132.11,1),
-        vec4(-8963.5,-557,-1132.11,1),
+        vec4( xred,-557,-1132.11,1),
         vec4( 9059.5,-557,-1132.11,1),
         //Red face side vertices 12-15
-        vec4(-8963.5,-1027, 1147.2,1),
-        vec4(-8963.5,-1027,-1147.2,1),
-        vec4(-8963.5, 1027, 1075.2,1),
-        vec4(-8963.5, 1027,-1075.2,1),
+        vec4( xred,-1027, 1147.2,1),
+        vec4( xred,-1027,-1147.2,1),
+        vec4( xred, 1027, 1075.2,1),
+        vec4( xred, 1027,-1075.2,1),
         //cab door cutout vertices 16-19
         vec4(-8278.5,-977, 1147.2,1),
         vec4(-8278.5,-977,-1147.2,1),
@@ -849,7 +957,7 @@ function rotateHoriz(){
             ytop = 3000; bottom = -3000; left = -3000; right = 3000; near = -3000; far = 20000;
         }
 //test line below delete later
-        ytop = 3000; bottom = -3000; left = -3000; right = 3000; near = -3000; far = 20000;
+        // ytop = 3000; bottom = -3000; left = -3000; right = 3000; near = -3000; far = 20000;
 
     }
 }

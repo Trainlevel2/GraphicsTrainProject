@@ -127,6 +127,48 @@ function buildDoors(){
         x12= x11+767.36;
         x2 = x12+200;
     }
+
+    endDoor(0,2,3,1,-9312.5,3); //3 = red
+    endDoor(1,3,7,5,-9312.5,3); //3 = red
+    endDoor(5,7,6,4,-9312.5,3); //3 = red
+    endDoor(4,6,2,0,-9312.5,3); //3 = red
+    // window
+    endDoor(2,3,7,6,-9312.5,3); //3 = red
+
+
+    endDoor(0,2,3,1, 9059.5,5); //5 = white
+    endDoor(8,3,7,9, 9059.5,5); //5 = white
+    endDoor(1,8,9,5, 9059.5,5); //blue stripe
+    endDoor(5,7,6,4, 9059.5,5); //5 = white
+    endDoor(4,6,2,0, 9059.5,5); //5 = white
+    // window
+    endDoor(2,3,7,6, 9059.5,5); //5 = white
+    
+    var z = 1140;
+    x1 = -8875.1;
+    x11 =-8675.1;
+    x12 =-8078.5;
+    x2 = -8278.5;
+
+    // // front side
+    // cabDoor( 2, 4, 5,12, x1, x11, x12, x2,z);
+    // cabDoor(12, 5, 7,18, x1, x11, x12, x2,z);
+    // cabDoor(18, 7, 6,16, x1, x11, x12, x2,z);
+    // cabDoor(16, 6, 4, 2, x1, x11, x12, x2,z);
+    // // blue stripe
+    // cabDoor( 0,16,18,13, x1, x11, x12, x2,z);
+    // // window front
+    // cabDoor( 4, 5, 7, 6, x1, x11, x12, x2,z);
+
+    // // back side
+    // cabDoor( 3, 8, 9,14, x1, x11, x12, x2,z);
+    // cabDoor(14, 9,11,17, x1, x11, x12, x2,z);
+    // cabDoor(19,11,10,17, x1, x11, x12, x2,z);
+    // cabDoor(17,10, 8, 3, x1, x11, x12, x2,z);
+    // // blue stripe
+    // cabDoor(1,17,19,15, x1, x11, x12, x2,z);
+    // // window back
+    // cabDoor( 8, 9,11,10, x1, x11, x12, x2,z);
 }
 
 function door( a, b, c, d, x1,x11,x12, x2, z){
@@ -175,7 +217,7 @@ function door( a, b, c, d, x1,x11,x12, x2, z){
         vec4(x2, yTop, zTop,1),
         vec4(x2, yBot, z   ,1),
         vec4(x2, yTop,-zTop,1),
-        vec4(x2, yBot,-z   ,1),
+        vec4(x2, yBot,-z   ,1)
 
     ];
 
@@ -212,6 +254,159 @@ function door( a, b, c, d, x1,x11,x12, x2, z){
         }
     }
     doors.push(door);
+}
+
+function cabDoor( a, b, c, d, x1,x11,x12, x2, z){
+    //z value specified is outermost z at bottom of door
+    var yTop = 1027;
+    var yWTop = yTop-171.17;
+    var yWBot = 0;
+    var yBot = -977;
+    var zTop = z-72;
+    var zWTop = zTop+6.15;
+    var zWBot = zWTop+30.75;
+    var yBlue = -557;
+    var zBlue = 1132.11;
+    //define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
+    var vertices = [
+        //area between cab door and first door D78 DM train:
+        //left door cutout vertices 0-3
+        vec4(x1, yBot, z   ,1),
+        vec4(x1, yBot,-z   ,1),
+        vec4(x1, yTop, zTop,1),
+        vec4(x1, yTop,-zTop,1),
+
+        //front side window vertices 4-7
+        vec4(x11,yWTop,zWTop,1),
+        vec4(x12,yWTop,zWTop,1),
+        vec4(x11,yWBot,zWBot,1),
+        vec4(x12,yWBot,zWBot,1),
+
+        // back side window vertices 8-11
+        vec4(x11,yWTop,-zWTop,1),
+        vec4(x12,yWTop,-zWTop,1),
+        vec4(x11,yWBot,-zWBot,1),
+        vec4(x12,yWBot,-zWBot,1),
+
+        //right door cab side vertices front and back 12-15
+        vec4(x2, yTop, zTop,1),
+        vec4(x2, yBot, z   ,1),
+        vec4(x2, yTop,-zTop,1),
+        vec4(x2, yBot,-z   ,1),
+
+        //Blue Stripe for Back 16-19
+        vec4( x1, yBlue , zBlue ,1),
+        vec4( x1, yBlue ,-zBlue ,1),
+        vec4( x2, yBlue , zBlue ,1),
+        vec4( x2, yBlue ,-zBlue ,1)
+
+    ];
+
+    var vertexColors = [
+        [ 0.0, 0.0, 0.0, 1.0 ],  // black
+        [ 0.0, 0.0, 1.0, 1.0 ],  // blue
+        [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
+        [ 1.0, 0.0, 0.0, 1.0 ],  // red
+        [ 0.0, 1.0, 0.0, 1.0 ],  // green
+        [ 1.0, 1.0, 1.0, 1.0 ],   // white
+        [ 1.0, .65, 0.0, 1.0 ],  //orange
+        [ 127/256, 176/256, 255/256, 1.0 ]  // cab blue
+
+    ];
+
+    var door = new Object();
+    door.vertices = [];
+    door.colors = [];
+    door.isClosed = true;
+    // We need to parition the quad into two triangles in order for
+    // WebGL to be able to render it.  In this case, we create two
+    // triangles from the quad indices
+    var indices = [ a, b, c, a, c, d ];
+    for ( var i = 0; i < indices.length; ++i ) {
+        door.vertices.push(vertices[indices[i]]);
+        totpoints.push( vertices[indices[i]] );
+        if(a==4||a==8){
+            door.colors.push(vertexColors[0]);
+            totcolors.push(vertexColors[0]);
+        }
+        else if(a==0||a==1){
+            door.colors.push(vertexColors[1]);
+            totcolors.push(vertexColors[1]);
+        }
+
+        else{
+            door.colors.push(vertexColors[5])
+            totcolors.push(vertexColors[5]);
+        }
+    }
+    doors.push(door);
+}
+
+function endDoor( a, b, c, d, x, color){
+    var yTop = 1027;
+    var yWTop = yTop-171.17;
+    var yWBot = 0;
+    var yBot = -977;
+    var zD = 243.51;
+    var zW = 210;
+    var yBlue = -557;
+    var vertices = [
+        //area between cab door and first door D78 DM train:
+        //left door rectangle
+        vec4(x, yTop , zD,1),
+        vec4(x, yBot , zD,1),
+        vec4(x, yWTop, zW,1),
+        vec4(x, yWBot, zW,1),
+
+        //right door rectangle 4-7
+        vec4(x, yTop ,-zD,1),
+        vec4(x, yBot ,-zD,1),
+        vec4(x, yWTop,-zW,1),
+        vec4(x, yWBot,-zW,1),
+
+        //blue stripe vertices
+        vec4(x, yBlue , zD ,1),
+        vec4(x, yBlue ,-zD ,1)
+
+
+    ];
+    var vertexColors = [
+        [ 0.0, 0.0, 0.0, 1.0 ],  // black
+        [ 0.0, 0.0, 1.0, 1.0 ],  // blue
+        [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
+        [ 1.0, 0.0, 0.0, 1.0 ],  // red
+        [ 0.0, 1.0, 0.0, 1.0 ],  // green
+        [ 1.0, 1.0, 1.0, 1.0 ],   // white
+        [ 1.0, .65, 0.0, 1.0 ],  //orange
+
+    ];
+
+    var door = new Object();
+    door.vertices = [];
+    door.colors   = [];
+    door.isClosed = true;
+    // We need to parition the quad into two triangles in order for
+    // WebGL to be able to render it.  In this case, we create two
+    // triangles from the quad indices
+    var indices = [ a, b, c, a, c, d ];
+    for ( var i = 0; i < indices.length; ++i ) {
+        door.vertices.push(vertices[indices[i]]);
+        totpoints.push( vertices[indices[i]] );
+        if(a==2){
+            door.colors.push(vertexColors[0]);
+            totcolors.push(vertexColors[0]);
+        }
+        else if(a==1&&x>0){
+            door.colors.push(vertexColors[1]);
+            totcolors.push(vertexColors[1]);
+        }
+        else{
+            door.colors.push(vertexColors[color])
+            totcolors.push(vertexColors[color]);
+        }
+    }
+    doors.push(door);
+
 }
 
 //Initializes all parameters for every cube, including 6 "quad" faces
@@ -322,8 +517,6 @@ function buildSkeleton()
     //First Part Seat Sides
     seating(16,20,22,12,x1,x2);
     seating(14,18,16,12,x1,x2);
-    //seating(2,6,4,0,x1,x2);
-    //seating(4,8,10,0,x1,x2);
 
     //First Part Textured Seats
     seating(22,20,8,10,x1,x2);
@@ -335,9 +528,7 @@ function buildSkeleton()
     //First Part Seat Sides
     seating(17,21,23,13,x1,x2);
     seating(15,19,17,13,x1,x2);
-    //seating(3,7,5,1,x1,x2);
-    //seating(5,9,11,1,x1,x2);
-
+    
     //First Part Textured Seats
     seating(23,21,9,11,x1,x2);
     seating(21,17,5,9,x1,x2);

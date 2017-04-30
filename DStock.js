@@ -13,7 +13,7 @@ var sideview = 0;
 var totpoints=[];	var points = [];				//Array of Vertices
 var totcolors=[];   var colors = [];
 var theta = 0;
-var wheels = [];	var bogies = []; var sides = [];
+var wheels = [];	var bogies = []; var sides = []; var doors = [];
 var rotating = 0;
 var program;
 var mvMatrixLoc;	
@@ -22,6 +22,7 @@ var rMatrixLoc;
 var rMatrix;
 var mvMatrix;	//Model-view Matrix
 var pMatrix;	//Projection Matrix
+var numSideVertices;
 
 window.onload = function init(){
 	//Get canvas elements
@@ -41,12 +42,16 @@ window.onload = function init(){
 	program = initShaders(gl,"vertex-shader", "fragment-shader");
 	gl.useProgram(program);
 
+    // Build the 4 sets of double doors and 2 single doors
+    buildDoors();
+
 	//Buld the Skeleton for the outside of train
 	buildSkeleton();
 
-	//Build the 4 sets of double doors and 2 single doors
-	// for(var i = 0; i<10; i++)
-	// 	buildDoor(i);
+    numSideVertices = 0;
+    for(var i = 0; i<sides.length; i++){
+        numSideVertices = numSideVertices + sides[i].vertices.length;
+    }
 
 	//Build the 2 trucks underneath the train
 	for(var i = 0; i<2; i++)
@@ -78,7 +83,7 @@ window.onload = function init(){
 
 	//Rotation Matrix
 	rMatrixLoc = gl.getUniformLocation (program, "rMatrix");
-    rMatrix = mult(rotate(-1,1.0,0.0,0.0),rotate(-3,0.0,1.0,0.0));
+    rMatrix = mult(rotate(-1,1.0,0.0,0.0),rotate(-5,0.0,1.0,0.0));
 
 	//Model View and Projection Matrices
 	mvMatrixLoc= gl.getUniformLocation (program, "mvMatrix");
@@ -89,6 +94,124 @@ window.onload = function init(){
     };
 
 	render();
+}
+
+//Creates all the doors including the cab doors and front/back of train
+function buildDoors(){
+    // door( a, b, c, d,x1,x11,x12,x2,z1,z2);
+
+    var x1 = -6707.36;
+    var x11 =-6507.36;
+    var x12 =-5740;
+    var x2 = -5540;
+    var z = 1126;
+    for(var i = 0; i<4; i++){
+
+        // front side
+        door( 2,12,14,0 , x1, x11, x12, x2,z);
+        door(12,13, 5,4 , x1, x11, x12, x2,z);
+        door( 6, 7,15,14, x1, x11, x12, x2,z);
+        door(13,20,21,15, x1, x11, x12, x2,z);
+        // //window front
+        door( 4, 5, 7, 6, x1, x11, x12, x2,z);
+
+        // // back side
+        door( 3,16,18, 1, x1, x11, x12, x2,z);
+        door(16,17, 9, 8, x1, x11, x12, x2,z);
+        door(10,11,19,18, x1, x11, x12, x2,z);
+        door(17,22,23,19, x1, x11, x12, x2,z);
+        // //window back
+        door( 8, 9,11,10, x1, x11, x12, x2,z);
+        x1 = x2+2916.19;
+        x11= x1+200;
+        x12= x11+767.36;
+        x2 = x12+200;
+    }
+}
+
+function door( a, b, c, d, x1,x11,x12, x2, z){
+    //z value specified is outermost z at bottom of door
+    var yTop = 1027;
+    var yWTop = yTop-171.17;
+    var yWBot = 0;
+    var yBot = -977;
+    var zTop = z-72;
+    var zWTop = zTop+6.15;
+    var zWBot = zWTop+30.75;
+    //define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
+    var vertices = [
+        //area between cab door and first door D78 DM train:
+        //left door cutout vertices 0-3
+        vec4(x1, yBot, z    ,1),
+        vec4(x1, yBot,-z   ,1),
+        vec4(x1, yTop, zTop,1),
+        vec4(x1, yTop,-zTop,1),
+
+        //front side window vertices 4-7
+        vec4(x11,yWTop,zWTop,1),
+        vec4(x12,yWTop,zWTop,1),
+        vec4(x11,yWBot,zWBot,1),
+        vec4(x12,yWBot,zWBot,1),
+
+        // back side window vertices 8-11
+        vec4(x11,yWTop,-zWTop,1),
+        vec4(x12,yWTop,-zWTop,1),
+        vec4(x11,yWBot,-zWBot,1),
+        vec4(x12,yWBot,-zWBot,1),
+
+        //front side above/below window vertices 12-15
+        vec4(x11,yTop, zTop,1),
+        vec4(x12,yTop, zTop,1),
+        vec4(x11,yBot, z   ,1),
+        vec4(x12,yBot, z   ,1),
+
+        //back side above/below window vertices 16-19
+        vec4(x11,yTop,-zTop,1),
+        vec4(x12,yTop,-zTop,1),
+        vec4(x11,yBot,-z   ,1),
+        vec4(x12,yBot,-z   ,1),
+
+        //right door cab side vertices front and back 20-23
+        vec4(x2, yTop, zTop,1),
+        vec4(x2, yBot, z   ,1),
+        vec4(x2, yTop,-zTop,1),
+        vec4(x2, yBot,-z   ,1),
+
+    ];
+
+    var vertexColors = [
+        [ 0.0, 0.0, 0.0, 1.0 ],  // black
+        [ 0.0, 0.0, 1.0, 1.0 ],  // blue
+        [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
+        [ 1.0, 0.0, 0.0, 1.0 ],  // red
+        [ 0.0, 1.0, 0.0, 1.0 ],  // green
+        [ 1.0, 1.0, 1.0, 1.0 ],   // white
+        [ 1.0, .65, 0.0, 1.0 ],  //orange
+        [ 127/256, 176/256, 255/256, 1.0 ]  // cab blue
+
+    ];
+
+    var door = new Object();
+    door.vertices = [];
+    door.colors = [];
+    door.isClosed = true;
+    // We need to parition the quad into two triangles in order for
+    // WebGL to be able to render it.  In this case, we create two
+    // triangles from the quad indices
+    var indices = [ a, b, c, a, c, d ];
+    for ( var i = 0; i < indices.length; ++i ) {
+        door.vertices.push(vertices[indices[i]]);
+        totpoints.push( vertices[indices[i]] );
+        if(a==4||a==8){
+            door.colors.push(vertexColors[0]);
+            totcolors.push(vertexColors[0]);
+        }
+        else{
+            door.colors.push(vertexColors[3])
+            totcolors.push(vertexColors[3]);
+        }
+    }
+    doors.push(door);
 }
 
 //Initializes all parameters for every cube, including 6 "quad" faces
@@ -108,29 +231,40 @@ function buildSkeleton()
     under( 4, 6, 7, 5 );
     under( 5, 4, 0, 1 );
 
-    floor( 1, 0, 2, 3 );
-    floor( 2, 3, 7, 6 );
-    floor( 3, 1, 5, 7 );
-    floor( 6, 2, 0, 4 );
-    floor( 4, 6, 7, 5 );
-    floor( 5, 4, 0, 1 );    
+    //bottom of floor/train
+    floor( 8, 9, 2, 0 );
+    floor( 3, 1, 0, 2 );
+
+    //top of floor
+    floor( 6, 7, 5, 4 );
+    floor(10,11, 6, 4 );
+
+    //blue sides
+    floor( 2, 6, 7, 3 );
+    floor( 1, 5, 7, 3 );
+    floor( 0, 4, 5, 1 );    
+
+    //red sides
+    floor( 4, 0, 8, 10);
+    floor( 9,11,10, 8 );
+    floor(11, 6, 2, 9 );
 
 	//Build a Specific Side
-    side( 1, 0, 2, 3 ); //bottom
+    // side( 1, 0, 2, 3 ); //bottom
     
     // side(10,11, 7,15 ); //top back side
     // side(13, 3,11,10 ); //bottom back side
     side(2, 13,15, 6 ); //red side back
 
-    side( 3, 1, 9,11 ); //bottom rear
-    side(11, 9, 5, 7 ); //top rear
-    side( 6, 2, 0, 4 ); //front
+    // side( 3, 1, 9,11 ); //bottom rear
+    // side(11, 9, 5, 7 ); //top rear
+    // side( 6, 2, 0, 4 ); //front
     side( 4, 6, 7, 5 ); //top
     // side( 5,14, 8, 9 ); //top front side
     // side( 9, 8,12, 1 ); //bottom front side
     side( 0,12,14, 4 ); //cab front side
 
-    var x1 = -8243.2;
+    var x1 = -8278.5;
     var x11= -7903;
     var x12= x11+729.05;
     var x2 = x12+466.59;
@@ -153,8 +287,7 @@ function buildSkeleton()
     //window far left back
     sidePart( 8, 9,11,10, x1, x11, x12, x2);
 
-    //Passenger-Cab Wall Passenger Side
-    sidePart( 3, 2,26,27, x1, x11, x12, x2);
+
 
     // front side first part
     sidePartInterior( 2,12,14,0 , x1, x11, x12, x2);
@@ -176,7 +309,15 @@ function buildSkeleton()
     sidePartInterior(24,20,21,25, x1, x11, x12, x2);
     sidePartInterior(26,22,23,27, x1, x11, x12, x2);
 
-    x1 = -8278.48;
+    
+    //Passenger Cab Wall Cab Side
+    sidePart( 3, 2,26,27, x1, x11, x12, x2);
+
+    x1 = -8243.2;
+
+    //Passenger-Cab Wall Passenger Side
+    sidePart( 3, 2,26,27, x1, x11, x12, x2);
+
 
     //First Part Seat Sides
     seating(16,20,22,12,x1,x2);
@@ -287,7 +428,152 @@ function buildSkeleton()
         seating(19,15,3,7,x1,x2);
 
     }
+    var xF = -9312.5;
+    // Front end of train in 1st iteration, back in second
+    for(var i = 0; i<2; i++){
+        if(i==0){
+            end( 0, 2, 3, 1,xF);
+            end( 4, 6, 7, 5,xF);
+            // end( 1, 5,13, 9,xF);
+        }
+        else{
+            end(32, 2, 3,34,xF);
+            end(33, 6, 7,35,xF);
+            end( 4,33,35, 5,xF);
+            end( 0,32,34, 1,xF);
+        }
+        end( 8, 9,11,10,xF);
+        end(12,13,15,14,xF);
+        end(16,17,19,18,xF);
+        end(20,21,23,22,xF);
+        end(24,25,27,26,xF);
+        end(28,29,31,30,xF);
+        // windows
+        end(29,21,23,31,xF);
+        end(25,17,19,27,xF);
+        xF = 9059.5;
+    }
+}
 
+function end(a,b,c,d,xF){
+    // var xF = -9312.5;           //x value at front of train (constant)
+
+    var yTop = 1027;            //y value at top of train
+    var yFloor = -977;          //y value at top of floor of train
+    var yWdwT = yTop-138.21;    //y value at bottom of window level
+    var yWdwB = yWdwT-967.45;   //y value at top of window level = -78.66
+
+    var zB = 1147.2;            //z value at top of floor of train
+    var zT = 1075.2;            //z value at top of train (below roof)
+    var zD = 243.51;            //z value at Door edge left/right
+    var zWdwI = 312.18;         //z value at inner side of front window
+    var zWdwOT= zWdwI+632.02;
+    var zWdwOB= zWdwOT+47.18;
+    var zWdwT = zT+ 4.97;
+    var zWdwB = zT+39.73;       //z value at edge farthest right/left of bottom window
+
+    var yBlue = -557;
+    var zBlue = 1132.11;
+
+    var vertices = [
+        //Bottom Right Front Rectangle
+        vec4( xF, yFloor, zB   ,1),
+        vec4( xF, yFloor, zD   ,1),
+        vec4( xF, yWdwB , zWdwB,1),
+        vec4( xF, yWdwB , zD   ,1),
+
+        //Bottom Left Rectangle
+        vec4( xF, yFloor,-zB   ,1),
+        vec4( xF, yFloor,-zD   ,1),
+        vec4( xF, yWdwB ,-zWdwB,1),
+        vec4( xF, yWdwB ,-zD   ,1),
+
+        //Top Right Front Rectangle 8-11
+        vec4( xF, yTop  , zT   ,1),
+        vec4( xF, yTop  , zD   ,1),
+        vec4( xF, yWdwT , zWdwT,1),
+        vec4( xF, yWdwT , zD   ,1),
+
+        //Top Left Front Rectangle 12-15
+        vec4( xF, yTop  ,-zT   ,1),
+        vec4( xF, yTop  ,-zD   ,1),
+        vec4( xF, yWdwT ,-zWdwT,1),
+        vec4( xF, yWdwT ,-zD   ,1),
+
+        //Door-Window Right Rectangle 16-19
+        vec4( xF, yWdwT , zD   ,1),
+        vec4( xF, yWdwT , zWdwI,1),
+        vec4( xF, yWdwB , zD   ,1),
+        vec4( xF, yWdwB , zWdwI,1),
+
+        //Door-Window Left Rectangle 20-23
+        vec4( xF, yWdwT ,-zD   ,1),
+        vec4( xF, yWdwT ,-zWdwI,1),
+        vec4( xF, yWdwB ,-zD   ,1),
+        vec4( xF, yWdwB ,-zWdwI,1),
+
+        //Window-Side Right Rectangle 24-27
+        vec4( xF, yWdwT , zWdwT ,1),
+        vec4( xF, yWdwT , zWdwOT,1),
+        vec4( xF, yWdwB , zWdwB ,1),
+        vec4( xF, yWdwB , zWdwOB,1),
+
+        //Window-Side Left Rectangle 28-31
+        vec4( xF, yWdwT ,-zWdwT ,1),
+        vec4( xF, yWdwT ,-zWdwOT,1),
+        vec4( xF, yWdwB ,-zWdwB ,1),
+        vec4( xF, yWdwB ,-zWdwOB,1),
+
+        //Blue Stripe for Back 32-35
+        vec4( xF, yBlue , zBlue ,1),
+        vec4( xF, yBlue ,-zBlue ,1),
+        vec4( xF, yBlue , zD    ,1),
+        vec4( xF, yBlue ,-zD    ,1)
+    ];
+    var vertexColors = [
+        [ 0.0, 0.0, 0.0, 1.0 ],  // black
+        [ 0.0, 0.0, 1.0, 1.0 ],  // blue
+        [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
+        [ 1.0, 0.0, 0.0, 1.0 ],  // red
+        [ 0.0, 1.0, 0.0, 1.0 ],  // green
+        [ 1.0, 1.0, 1.0, 1.0 ],   // white
+        [ 1.0, .65, 0.0, 1.0 ],  //orange
+        [240/256,240/256,240/256, 1.0 ]  // doorway
+
+    ];
+
+    var side = new Object();
+    side.vertices = [];
+    side.colors = [];
+    // We need to parition the quad into two triangles in order for
+    // WebGL to be able to render it.  In this case, we create two
+    // triangles from the quad indices
+    var indices = [ a, b, c, a, c, d ];
+    for ( var i = 0; i < indices.length; ++i ) {
+        side.vertices.push(vertices[indices[i]]);
+        totpoints.push( vertices[indices[i]] );
+        if(a==29||a==25){
+            side.colors.push(vertexColors[0]);
+            totcolors.push(vertexColors[0]);
+        }
+        else{
+            if(xF>0){ //if back
+                if(a>4){
+                    side.colors.push(vertexColors[5])
+                    totcolors.push(vertexColors[5]);
+                }
+                else{
+                    side.colors.push(vertexColors[1])
+                    totcolors.push(vertexColors[1]);
+                }
+            }
+            else{    //if front
+                side.colors.push(vertexColors[3])
+                totcolors.push(vertexColors[3]);
+            }
+        }
+    }
+    sides.push(side);
 }
 
 function seating(a, b, c, d, xfIL, xfIR)
@@ -458,7 +744,7 @@ function sidePartInterior(a, b, c, d, x1, x11, x12, x2)
             side.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
         }
-        else if(a==24||a==26){
+        else if(a==24||a==26||a==28||a==30){
             side.colors.push(vertexColors[7]);
             totcolors.push(vertexColors[7]);
         }
@@ -527,7 +813,7 @@ function sidePart(a, b, c, d, x1, x11, x12, x2)
         [ 0.0, 1.0, 0.0, 1.0 ],  // green
         [ 1.0, 1.0, 1.0, 1.0 ],   // white
         [ 1.0, .65, 0.0, 1.0 ],  //orange
-        [ 0.0, 1.0, 1.0, 1.0 ]  // cyan
+        [ 127/256, 176/256, 255/256, 1.0 ]  // cab blue
 
     ];
 
@@ -549,6 +835,10 @@ function sidePart(a, b, c, d, x1, x11, x12, x2)
             side.colors.push(vertexColors[1]);
             totcolors.push(vertexColors[1]);
         }
+        else if(b==2&&x1==-8278.5){
+            side.colors.push(vertexColors[7]);
+            totcolors.push(vertexColors[7]);
+        }
         else{
             side.colors.push(vertexColors[5])
             totcolors.push(vertexColors[5]);
@@ -565,9 +855,9 @@ function side(a, b, c, d)
     var vertices = [
         //corners of the D78 DM train:
         //Bottom corners 0-3
-        vec4(-9312.5,-1027, 1149,1),
+        vec4(-9312.5,-977, 1147.2,1),
         vec4( 9059.5,-977, 1147.2,1),
-        vec4(-9312.5,-1027,-1149,1),
+        vec4(-9312.5,-977,-1147.2,1),
         vec4( 9059.5,-977,-1147.2,1),
         //Top corners   4-7
         vec4(-9312.5, 1027, 1075.2,1),
@@ -580,15 +870,15 @@ function side(a, b, c, d)
         vec4( xred,-557,-1132.11,1),
         vec4( 9059.5,-557,-1132.11,1),
         //Red face side vertices 12-15
-        vec4( xred,-1027, 1147.2,1),
-        vec4( xred,-1027,-1147.2,1),
+        vec4( xred,-977, 1147.2,1),
+        vec4( xred,-977,-1147.2,1),
         vec4( xred, 1027, 1075.2,1),
         vec4( xred, 1027,-1075.2,1),
         //cab door cutout vertices 16-19
         vec4(-8278.5,-977, 1147.2,1),
         vec4(-8278.5,-977,-1147.2,1),
         vec4(-8278.5, 1027, 1075.2,1),
-        vec4(-8278.5, 1027,-1075.2,1),
+        vec4(-8278.5, 1027,-1075.2,1)
 
     ];
 
@@ -738,7 +1028,14 @@ function floor(a, b, c, d)
         vec4(-8963.5, -977, 1147.2,1),
         vec4( 9059.5, -977, 1147.2,1),
         vec4(-8963.5, -977,-1147.2,1),
-        vec4( 9059.5, -977,-1147.2,1)
+        vec4( 9059.5, -977,-1147.2,1),
+
+        //Bottom corners front
+        vec4(-9312.5,-1027, 1149  ,1),
+        vec4(-9312.5,-1027,-1149  ,1),
+        //Top corners front
+        vec4(-9312.5, -977, 1147.2,1),
+        vec4(-9312.5, -977,-1147.2,1)
     ];
 
     var vertexColors = [
@@ -763,11 +1060,11 @@ function floor(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        if(a==6){
+        if(a==4||a==9||a==11){
             side.colors.push(vertexColors[3]);
             totcolors.push(vertexColors[3]);
         }
-        else if(a==4){
+        else if(a==6||a==10){
             side.colors.push(vertexColors[7]);
             totcolors.push(vertexColors[7]);
         }
@@ -777,14 +1074,6 @@ function floor(a, b, c, d)
         }
     }
     sides.push(side);
-}
-
-
-function buildDoor(number){
-    var Door = new Object();
-    Door.vertices = [];
-    Door.closed = true;
-    Door.color = 0;
 }
 
 function buildBogie(number){
@@ -982,15 +1271,19 @@ function render(){
     gl.uniformMatrix4fv( rMatrixLoc, false, flatten(rMatrix) );
 
 
+
     start = 0;
-    gl.drawArrays( gl.TRIANGLES, start, sides.length*sides[0].vertices.length);
-    start = start + sides.length*sides[0].vertices.length;
+    gl.drawArrays( gl.TRIANGLES, start, doors.length*doors[0].vertices.length);
+    start = start + doors.length*doors[0].vertices.length;
+
+
+    gl.drawArrays( gl.TRIANGLES, start, numSideVertices);
+    start = start + numSideVertices;
+
     for(var i = 0; i<bogies.length; i++){
         gl.drawArrays( gl.TRIANGLES, start, bogies[i].vertices.length);
         start = start + bogies[i].vertices.length;
-        console.log(start);
     }
-    console.log(wheels.length);
     for(var i = 0; i<wheels.length; i++){
         gl.drawArrays(gl.TRIANGLE_FAN, start, wheels[i].botVertices.length);
         start = start + wheels[i].botVertices.length;

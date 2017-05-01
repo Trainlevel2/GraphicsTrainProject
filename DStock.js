@@ -4,8 +4,8 @@
 var NumVertices = 0;
 var aspect = 10000;
 var eye = vec3(0,0,10000);		var at = vec3(0,0,1027);     	var up = vec3(0,1,0);
-var ytop = aspect; 	var bottom = -1*aspect; 	var left = -1*aspect; var right = aspect;
-var near = -2000;	var far = 20000;
+// var ytop = aspect; 	var bottom = -1*aspect; 	var left = -1*aspect; var right = aspect;
+var near = -2000;	var far = 40000;
 
 //what view is it?
 var sideview = 0;
@@ -22,18 +22,27 @@ var pMatrixLoc;
 var rMatrixLoc;
 var rMatrix;
 var tMatrixLoc;
+var trainMtxLoc;
+var trainMtx;
+var left = false;
+
 var mvMatrix;	//Model-view Matrix
 var pMatrix;	//Projection Matrix
 var numSideVertices;
 var doorIsClosing = false;
-var pos = 0;
-var mainDoorsSize = 40;
-
+var pos = 0; //for door position translating
+var mainDoorsSize = 88; //for main doors that open
+var offset = 0; var totoffset = 0;
+var zoomedIn = 0;
+var click = false;
 var texCoord = [
     vec2(0, 0),
     vec2(0, 1),
     vec2(1, 1),
-    vec2(1, 0)
+    vec2(1, 0),
+    vec2(0,0.0001),
+    vec2(0.0001,0.0001),
+    vec2(0.0001,0)
 ];
 
 window.onload = function init(){
@@ -72,7 +81,7 @@ window.onload = function init(){
 	for(var i = 0; i<wheels.length; i++)
 		buildWheel(i);
 
-
+    trainMtx = translate(0,0,0);
 	//After generating each cube, create everything to render each cube
 	// Color Buffer
     var cBuffer = gl.createBuffer();
@@ -93,6 +102,8 @@ window.onload = function init(){
 	gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vPosition);
 
+    initTextures();
+
     var tBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
     gl.bufferData( gl.ARRAY_BUFFER, flatten(textures), gl.STATIC_DRAW );
@@ -102,8 +113,9 @@ window.onload = function init(){
     gl.enableVertexAttribArray( vTexCoord );
 
 	//Rotation Matrix
+    trainMtxLoc = gl.getUniformLocation (program, "trainMtx");
 	rMatrixLoc = gl.getUniformLocation (program, "rMatrix");
-    rMatrix = mult(rotate(-1,1.0,0.0,0.0),rotate(-5,0.0,1.0,0.0));
+    rMatrix = mult(rotate(-1,1.0,0.0,0.0),rotate(-4,0.0,1.0,0.0));
     tMatrixLoc = gl.getUniformLocation (program, "tMatrix");
 
 	//Model View and Projection Matrices
@@ -127,6 +139,74 @@ window.onload = function init(){
         }
     }
 
+    document.getElementById("MoveInRight").onclick = function() {
+        if(totoffset==0){
+            eye = vec3(0,0,6000);
+            at = vec3(0,0,5500);
+            rMatrix = mult(rMatrix,mult(rotate(-2,0.0,0.0,1.0),rotate(-1,0.0,1.0,0.0)));
+            aspect = 2000;
+        }
+        if(totoffset<=7000){
+            offset += 500;
+            totoffset += 500;
+        }
+        
+    }
+    document.getElementById("MoveInLeft").onclick = function() {
+        left = true;
+        if(totoffset==0){
+            eye = vec3(0,0,6000);
+            at = vec3(0,0,5500);
+            rMatrix = mult(rMatrix,mult(rotate(-2,0.0,0.0,1.0),rotate(9,0.0,1.0,0.0)));
+            aspect = 2000;
+        }
+        if(totoffset<=7000){
+            offset += 500;
+            totoffset += 500;
+        }
+        
+    }
+    document.getElementById("MoveOut").onclick = function() {
+        if(totoffset==500){
+            eye = vec3(0,0,10000);
+            at = vec3(0,0,1027);
+            if(left){
+                rMatrix = mult(rMatrix,mult(rotate(2,0.0,0.0,1.0),rotate(-9,0.0,1.0,0.0)));
+                left = false;
+            }
+            else
+                rMatrix = mult(rMatrix,mult(rotate(2,0.0,0.0,1.0),rotate(1,0.0,1.0,0.0)));
+
+            aspect = 3000;
+        }
+        if(totoffset>=500){
+            offset -= 500;
+            totoffset -=500;
+        }
+        
+    }
+    document.getElementById("Zoom").onclick = function() {
+        if(zoomedIn){
+            aspect = aspect*5;
+            zoomedIn = false;
+        }
+        else{
+            aspect = aspect/5;
+            zoomedIn = true;
+        }
+
+    }
+    document.getElementById("Click").onclick = function() {
+        click = !click;
+        if(click){
+            document.getElementById("Click").innerHTML = "Disable Continuous Rotating";
+        }
+        else{
+            document.getElementById("Click").innerHTML = "Allow Continuous Rotating";
+        }
+
+    }
+
 	render();
 }
 
@@ -140,14 +220,12 @@ function initTextures() {
 function handleTextureLoaded(image, texture) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    // gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    // Prevents s-coordinate wrapping (repeating).
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    // Prevents t-coordinate wrapping (repeating).
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    // gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB, 
+         gl.RGB, gl.UNSIGNED_BYTE, image );
+    gl.generateMipmap( gl.TEXTURE_2D );
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, 
+                      gl.NEAREST_MIPMAP_LINEAR );
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
     gl.uniformli(gl.getUniformLocation(program, "texture"), 0);
 }
 
@@ -178,11 +256,32 @@ function buildDoors(){
         door(17,22,23,19, x1, x11, x12, x2,z);
         // //window back
         door( 8, 9,11,10, x1, x11, x12, x2,z);
+
+        // front side
+        door( 2,12,14,0 , x1, x11, x12, x2,z-30);
+        door(12,13, 5,4 , x1, x11, x12, x2,z-30);
+        door( 6, 7,15,14, x1, x11, x12, x2,z-30);
+        door(13,20,21,15, x1, x11, x12, x2,z-30);
+        // //window front
+        door( 4, 5, 7, 6, x1, x11, x12, x2,z-30);
+
+        // // back side
+        door( 3,16,18, 1, x1, x11, x12, x2,z-30);
+        door(16,17, 9, 8, x1, x11, x12, x2,z-30);
+        door(10,11,19,18, x1, x11, x12, x2,z-30);
+        door(17,22,23,19, x1, x11, x12, x2,z-30);
+        // //window back
+        door( 8, 9,11,10, x1, x11, x12, x2,z-30);
+
+        //connection
+        door( 25, 0, 2,24,x1, x11, x12, x2,z);
+        door( 26,27, 1, 3,x1, x11, x12, x2,z);
         x1 = x2+2916.19;
         x11= x1+200;
         x12= x11+767.36;
         x2 = x12+200;
     }
+
 
     endDoor(0,2,3,1,-9312.5,3); //3 = red
     endDoor(1,3,7,5,-9312.5,3); //3 = red
@@ -273,7 +372,13 @@ function door( a, b, c, d, x1,x11,x12, x2, z){
         vec4(x2, yTop, zTop,1),
         vec4(x2, yBot, z   ,1),
         vec4(x2, yTop,-zTop,1),
-        vec4(x2, yBot,-z   ,1)
+        vec4(x2, yBot,-z   ,1),
+
+        //right door cab side vertices front and back 24-27
+        vec4(x1, yTop, zTop-30,1),
+        vec4(x1, yBot, z   -30,1),
+        vec4(x1, yTop,-zTop+30,1),
+        vec4(x1, yBot,-z   +30,1)
 
     ];
 
@@ -302,8 +407,14 @@ function door( a, b, c, d, x1,x11,x12, x2, z){
     for ( var i = 0; i < indices.length; ++i ) {
         door.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        textures.push(texCoord[0]);
-        if(a==4||a==8){
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
+        if(a==4||a==8||a==25||a==26){
             door.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
         }
@@ -385,7 +496,13 @@ function cabDoor( a, b, c, d, x1,x11,x12, x2, z){
     for ( var i = 0; i < indices.length; ++i ) {
         door.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        textures.push(texCoord[0]);
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
         if(a==4||a==8){
             door.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
@@ -454,7 +571,13 @@ function endDoor( a, b, c, d, x, color){
     for ( var i = 0; i < indices.length; ++i ) {
         door.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        textures.push(texCoord[0]);
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
         if(a==2){
             door.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
@@ -578,25 +701,31 @@ function buildSkeleton()
 
 
     //First Part Seat Sides
-    seating(16,20,22,12,x1,x2);
     seating(14,18,16,12,x1,x2);
+    seating(16,20,22,30,x1,x2);
+    seating(30,34,12,16,x1,x2);
 
     //First Part Textured Seats
     seating(22,20,8,10,x1,x2);
     seating(20,16,4,8,x1,x2);
     seating(16,18,6,4,x1,x2);
     seating(18,14,2,6,x1,x2);
+    //Underside Part
+    seating(28,30,34,32,x1,x2);
 
 
     //First Part Seat Sides
-    seating(17,21,23,13,x1,x2);
     seating(15,19,17,13,x1,x2);
+    seating(17,21,23,31,x1,x2);
+    seating(31,35,13,17,x1,x2);
     
     //First Part Textured Seats
-    seating(23,21,9,11,x1,x2);
+    seating(23,21, 9,11,x1,x2);
     seating(21,17,5,9,x1,x2);
     seating(17,19,7,5,x1,x2);
     seating(19,15,3,7,x1,x2);
+    //Underside Part
+    seating(29,31,35,33,x1,x2);
 
     //FIRST PART DONE WOO
 
@@ -617,7 +746,16 @@ function buildSkeleton()
         // front side first part
         sidePart( 2,12,14,0 , x1, x11, x12, x2);
         sidePart(12,13, 5,4 , x1, x11, x12, x2);
-        sidePart( 6, 7,15,14, x1, x11, x12, x2);
+        if(i!=1)
+            sidePart( 6, 7,15,14, x1, x11, x12, x2);
+        else{
+            sidePart( 6,28,29, 7,x1,x11,x12,x2);
+            sidePart( 7,29,30,15,x1,x11,x12,x2);
+            sidePart(15,30,31,14,x1,x11,x12,x2);
+            sidePart(14,31,28, 6,x1,x11,x12,x2);
+            //tube logo
+            sidePart(28,29,30,31,x1,x11,x12,x2);
+        }
         sidePart(13,20,21,15, x1, x11, x12, x2);
         sidePart( 0,21,24,26, x1, x11, x12, x2); //blue stripe front
         //window far left front
@@ -626,7 +764,16 @@ function buildSkeleton()
         // back side first part
         sidePart( 3,16,18, 1, x1, x11, x12, x2);
         sidePart(16,17, 9, 8, x1, x11, x12, x2);
-        sidePart(10,11,19,18, x1, x11, x12, x2);
+        if(i!=1)
+            sidePart(10,11,19,18, x1, x11, x12, x2);
+        else{
+            sidePart(10,32,33,11,x1,x11,x12,x2);
+            sidePart(11,33,34,19,x1,x11,x12,x2);
+            sidePart(19,34,35,18,x1,x11,x12,x2);
+            sidePart(18,35,32,10,x1,x11,x12,x2);
+            //tube logo
+            sidePart(32,33,34,35,x1,x11,x12,x2);
+        }
         sidePart(17,22,23,19, x1, x11, x12, x2);
         sidePart( 1,23,25,27, x1, x11, x12, x2); //blue stripe back
         //window far left back
@@ -657,29 +804,42 @@ function buildSkeleton()
         sidePartInterior(30,3,1,31, x1, x11, x12, x2);
 
         //First Part Seat Sides
-        seating(16,20,22,12,x1,x2);
         seating(14,18,16,12,x1,x2);
         seating(2,6,4,0,x1,x2);
-        seating(4,8,10,0,x1,x2);
+        //\/ Test
+        seating(16,20,22,30,x1,x2);
+        seating(30,34,12,16,x1,x2);        
+        seating(4,8,10,28,x1,x2);
+        seating(28,32,0,4,x1,x2);
+
+        //Underside Part
+        seating(28,30,34,32,x1,x2);
 
         //First Part Textured Seats
         seating(22,20,8,10,x1,x2);
+
         seating(20,16,4,8,x1,x2);
         seating(16,18,6,4,x1,x2);
         seating(18,14,2,6,x1,x2);
 
 
         //First Part Seat Sides
-        seating(17,21,23,13,x1,x2);
         seating(15,19,17,13,x1,x2);
         seating(3,7,5,1,x1,x2);
-        seating(5,9,11,1,x1,x2);
+        //\/Test
+        seating(17,21,23,31,x1,x2);
+        seating(31,35,13,17,x1,x2);
+        seating(5,9,11,29,x1,x2);
+        seating(29,33,1,5,x1,x2);
 
         //First Part Textured Seats
-        seating(23,21,9,11,x1,x2);
+        seating(23,21, 9,11,x1,x2);
+
         seating(21,17,5,9,x1,x2);
         seating(17,19,7,5,x1,x2);
         seating(19,15,3,7,x1,x2);
+        //Underside Part
+        seating(29,31,35,33,x1,x2);
 
     }
     var xF = -9312.5;
@@ -806,7 +966,13 @@ function end(a,b,c,d,xF){
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        textures.push(texCoord[0]);
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
         if(a==29||a==25){
             side.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
@@ -835,15 +1001,16 @@ function seating(a, b, c, d, xfIL, xfIR)
 {
     var zfI = 1000;
     var zfS = 950;
-    var zfsE = 487.95;
+    var zfsE = 587.95;
+    var yCushB = -700;
     // var xfIL = -8278.48;
     // var xfIR = -6598.5;
     //define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
     var vertices = [
         //area between cab door and first door D78 DM train:
         //cab door cutout Interior vertices 0-3
-        vec4(xfIL,-977   , zfI,1),
-        vec4(xfIL,-977   ,-zfI,1),
+        vec4(xfIL, -977  , zfI,1),
+        vec4(xfIL, -977  ,-zfI,1),
         vec4(xfIL,-115.28, zfI,1),
         vec4(xfIL,-115.28,-zfI,1),
 
@@ -856,12 +1023,12 @@ function seating(a, b, c, d, xfIL, xfIR)
         //cab door cutout seatfront vertices 8-11
         vec4(xfIL,-503.92, zfsE,1),
         vec4(xfIL,-503.92,-zfsE,1), //butt of seat level
-        vec4(xfIL,-977   , zfsE,1), //bottom of seat
-        vec4(xfIL,-977   ,-zfsE,1),
+        vec4(xfIL, yCushB, zfsE,1), //bottom of seat
+        vec4(xfIL, yCushB,-zfsE,1),
 
         //First Passenger door cab side vertices front and back interior 12-15
-        vec4(xfIR,-977   , zfI,1),
-        vec4(xfIR,-977   ,-zfI,1),
+        vec4(xfIR, -977  , zfI,1),
+        vec4(xfIR, -977  ,-zfI,1),
         vec4(xfIR,-115.28, zfI,1),
         vec4(xfIR,-115.28,-zfI,1),
 
@@ -874,8 +1041,26 @@ function seating(a, b, c, d, xfIL, xfIR)
         // First Passenger door cab side vertices front and back seat front 20-23
         vec4(xfIR,-503.92, zfsE,1),
         vec4(xfIR,-503.92,-zfsE,1),
-        vec4(xfIR,-977   , zfsE,1),
-        vec4(xfIR,-977   ,-zfsE,1)
+        vec4(xfIR, yCushB, zfsE,1),
+        vec4(xfIR, yCushB,-zfsE,1),
+
+        // Seat Cushions 24-27
+        vec4(xfIL,yCushB , zfsE,1),
+        vec4(xfIL,yCushB ,-zfsE,1),
+        vec4(xfIR,yCushB , zfsE,1),
+        vec4(xfIR,yCushB ,-zfsE,1),
+
+        // Seat Stand 28-31
+        vec4(xfIL,yCushB , (zfsE+200),1),
+        vec4(xfIL,yCushB ,-(zfsE+200),1),
+        vec4(xfIR,yCushB , (zfsE+200),1),
+        vec4(xfIR,yCushB ,-(zfsE+200),1),
+
+        // Seat Underside 32-35
+        vec4(xfIL,-977   , (zfsE+200),1),
+        vec4(xfIL,-977   ,-(zfsE+200),1),
+        vec4(xfIR,-977   , (zfsE+200),1),
+        vec4(xfIR,-977   ,-(zfsE+200),1)
 
     ];
 
@@ -887,7 +1072,7 @@ function seating(a, b, c, d, xfIL, xfIR)
         [ 0.0, 1.0, 0.0, 1.0 ],  // green
         [ 1.0, 1.0, 1.0, 1.0 ],   // white
         [ 1.0, .65, 0.0, 1.0 ],  //orange
-        [240/256,240/256,240/256, 1.0 ]  // doorway
+        [150/256,150/256,150/256, 1.0 ]  // doorway
 
     ];
 
@@ -901,14 +1086,24 @@ function seating(a, b, c, d, xfIL, xfIR)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        textures.push(totpoints[0]);
-        if(d==12||d==13||d==0||d==1){
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
+        if(a==22||a==20||a==18||a==23||a==21||a==19||c==6||c==7){
+            side.colors.push(vertexColors[6]);
+            totcolors.push(vertexColors[6]);
+        }
+        else if(b==31||b==30){
             side.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
         }
         else{
-            side.colors.push(vertexColors[6])
-            totcolors.push(vertexColors[6]);
+            side.colors.push(vertexColors[7]);
+            totcolors.push(vertexColors[7]);
         }
     }
     sides.push(side);
@@ -996,7 +1191,13 @@ function sidePartInterior(a, b, c, d, x1, x11, x12, x2)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        textures.push(texCoord[0]);
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
         if(a==4||a==8){
             side.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
@@ -1015,6 +1216,16 @@ function sidePartInterior(a, b, c, d, x1, x11, x12, x2)
 
 function sidePart(a, b, c, d, x1, x11, x12, x2)
 {
+
+    var height = 499.6;
+    var width  = 1000;
+    var x111 = (846.92/2)+300 + x11;
+    var x112 = x12-(846.92/2)-300;
+    var y1 = -78.75;
+    var y2 = -478.25;
+    var offset = 2.83;
+    var z1 = -2.83+1112.1;
+    var z2 = 1132.11-2.83; 
     //define vertices for all 27 .32x.32x.32 cubes in one single vertices definition, with .02 spacing
     var vertices = [
         //area between cab door and first door D78 DM train:
@@ -1026,27 +1237,27 @@ function sidePart(a, b, c, d, x1, x11, x12, x2)
 
         //front side window vertices 4-7
         vec4(x11,855.83, 1081.35,1),
-        vec4(x12,   855.83, 1081.35,1),
+        vec4(x12,855.83, 1081.35,1),
         vec4(x11,  0,    1112.1,1),
-        vec4(x12,     0,    1112.1,1),
+        vec4(x12,  0,    1112.1,1),
 
         // back side window vertices 8-11
         vec4(x11,855.83,-1081.35,1),
-        vec4(x12,   855.83,-1081.35,1),
+        vec4(x12,855.83,-1081.35,1),
         vec4(x11,  0   ,-1112.1,1),
-        vec4(x12,     0   ,-1112.1,1),
+        vec4(x12,  0   ,-1112.1,1),
 
         //front side above/below window vertices 12-15
         vec4(x11,1027, 1075.2,1),
-        vec4(x12,   1027, 1075.2,1),
+        vec4(x12,1027, 1075.2,1),
         vec4(x11,-557, 1132.11,1),
-        vec4(x12,   -557, 1132.11,1),
+        vec4(x12,-557, 1132.11,1),
 
         //back side above/below window vertices 16-19
         vec4(x11,1027,-1075.2,1),
-        vec4(x12,   1027,-1075.2,1),
+        vec4(x12,1027,-1075.2,1),
         vec4(x11,-557,-1132.11,1),
-        vec4(x12,   -557,-1132.11,1),
+        vec4(x12,-557,-1132.11,1),
 
         //First Passenger door cab side vertices front and back 20-23
         vec4(x2,1027, 1075.2,1),
@@ -1058,7 +1269,19 @@ function sidePart(a, b, c, d, x1, x11, x12, x2)
         vec4(x2,-977, 1147.2,1),
         vec4(x2,-977,-1147.2,1),
         vec4(x1,-977, 1147.2,1),
-        vec4(x1,-977,-1147.2,1)
+        vec4(x1,-977,-1147.2,1),
+
+        //tubelogo vertices 28-31
+        vec4(x111, y1, z1 ,1),
+        vec4(x112, y1, z1 ,1),
+        vec4(x112, y2, z2 ,1),
+        vec4(x111, y2, z2, 1),
+
+        //tubelogo vertices 32-35
+        vec4(x111, y1, -z1 ,1),
+        vec4(x112, y1, -z1 ,1),
+        vec4(x112, y2, -z2 ,1),
+        vec4(x111, y2, -z2, 1)
 
     ];
 
@@ -1085,22 +1308,48 @@ function sidePart(a, b, c, d, x1, x11, x12, x2)
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
         if(a==4||a==8){
-            textures.push(texCoord[0]);
+            switch(indices[i]){
+                case a : textures.push(texCoord[0]); break;
+                case b : textures.push(texCoord[4]); break;
+                case c : textures.push(texCoord[5]); break;
+                case d : textures.push(texCoord[6]); break;
+                default:break;
+            }
             side.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
         }
         else if(a==0||a==1){
-            textures.push(texCoord[0]);
+            switch(indices[i]){
+                case a : textures.push(texCoord[0]); break;
+                case b : textures.push(texCoord[4]); break;
+                case c : textures.push(texCoord[5]); break;
+                case d : textures.push(texCoord[6]); break;
+                default:break;
+            }
             side.colors.push(vertexColors[1]);
             totcolors.push(vertexColors[1]);
         }
         else if(b==2&&x1==-8278.5){
-            textures.push(texCoord[0]);
+            switch(indices[i]){
+                case a : textures.push(texCoord[0]); break;
+                case b : textures.push(texCoord[4]); break;
+                case c : textures.push(texCoord[5]); break;
+                case d : textures.push(texCoord[6]); break;
+                default:break;
+            }
             side.colors.push(vertexColors[7]);
             totcolors.push(vertexColors[7]);
         }
         else{
-            if((a==6||a==10)&&x1>-1500&&x1<-1400){
+            if(a==28){
+                switch(indices[i]){
+                    case a : textures.push(texCoord[1]); break;
+                    case b : textures.push(texCoord[0]); break;
+                    case c : textures.push(texCoord[3]); break;
+                    case d : textures.push(texCoord[2]); break;
+                }
+            }
+            else if(a==32){
                 switch(indices[i]){
                     case a : textures.push(texCoord[0]); break;
                     case b : textures.push(texCoord[1]); break;
@@ -1108,8 +1357,15 @@ function sidePart(a, b, c, d, x1, x11, x12, x2)
                     case d : textures.push(texCoord[3]); break;
                 }
             }
-            else
-                textures.push(texCoord[0]);
+            else{
+                switch(indices[i]){
+                    case a : textures.push(texCoord[0]); break;
+                    case b : textures.push(texCoord[4]); break;
+                    case c : textures.push(texCoord[5]); break;
+                    case d : textures.push(texCoord[6]); break;
+                    default:break;
+                }
+            }
             side.colors.push(vertexColors[5])
             totcolors.push(vertexColors[5]);
         }
@@ -1174,7 +1430,13 @@ function side(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        textures.push(texCoord[0]);
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
         if(a==6||a==0||a==2){
             side.colors.push(vertexColors[3]);
             totcolors.push(vertexColors[3]);
@@ -1233,7 +1495,13 @@ function roof(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        textures.push(texCoord[0]);
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
         side.colors.push(vertexColors[7]);
         totcolors.push(vertexColors[7]);
     }
@@ -1279,7 +1547,13 @@ function under(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        textures.push(texCoord[0]);
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
         side.colors.push(vertexColors[5])
         totcolors.push(vertexColors[0]);
     }
@@ -1333,7 +1607,13 @@ function floor(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
-        textures.push(texCoord[0]);
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
         if(a==4||a==9||a==11){
             side.colors.push(vertexColors[3]);
             totcolors.push(vertexColors[3]);
@@ -1441,7 +1721,13 @@ function quadBogie(a,b,c,d,vertices){
 	for ( var i = 0; i < indices.length; ++i ) {
 	    points.push( vertices[indices[i]] );
 	    totpoints.push( vertices[indices[i]] );
-        textures.push(texCoord[0]);
+        switch(indices[i]){
+            case a : textures.push(texCoord[0]); break;
+            case b : textures.push(texCoord[4]); break;
+            case c : textures.push(texCoord[5]); break;
+            case d : textures.push(texCoord[6]); break;
+            default:break;
+        }
 	    totcolors.push( [51/256,13/256,0.0,1.0] );
 	}
 }
@@ -1469,17 +1755,14 @@ function buildWheel(number){
 
 	}
     for(var i  = 0; i<wheels[number].botVertices.length; i++){
-        textures.push(texCoord[0]);
         totpoints.push(vec4(wheels[number].botVertices[i].x,wheels[number].botVertices[i].y,wheels[number].botVertices[i].z,1.0));
         totcolors.push( [rf,gf,bf,al] );
     }
     for(var i = 0; i<wheels[number].sideVertices.length; i++){
-        textures.push(texCoord[0]);
         totpoints.push(vec4(wheels[number].sideVertices[i].x,wheels[number].sideVertices[i].y,wheels[number].sideVertices[i].z,1.0));
         totcolors.push( [rs,gs,bs,al] );
     }
-    for(var i = 0; i<wheels[number].topVertices.length; i++){        
-        textures.push(texCoord[0]);
+    for(var i = 0; i<wheels[number].topVertices.length; i++){    
         totpoints.push(vec4(wheels[number].topVertices[i].x,wheels[number].topVertices[i].y,wheels[number].topVertices[i].z,1.0));
         totcolors.push( [rf,gf,bf,al] );
     }
@@ -1517,14 +1800,12 @@ function rotateHoriz(){
     else{
         rotating = 1;
         sideview = !sideview;
-        if(!sideview){
-            ytop = 10000; bottom = -10000; left = -10000; right = 10000; near = -5000; far = 20000;
-        }
-        else{
-            ytop = 3000; bottom = -3000; left = -3000; right = 3000; near = -3000; far = 20000;
-        }
+        // if(!sideview){
+        // }
+        // else{
+        // }
 //test line below delete later
-        // ytop = 3000; bottom = -3000; left = -3000; right = 3000; near = -3000; far = 20000;
+        // ytop = 2000; bottom = -2000; left = -2000; right = 2000; near = -2000; far = 25000;
 
     }
 }
@@ -1534,24 +1815,45 @@ function render(){
 	gl.depthFunc(gl.LEQUAL); 
 
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	mvMatrix = lookAt(eye, at, up);
-	pMatrix  = ortho (left, right, bottom, ytop, near, far);
-    if(rotating){
+	if(rotating){
         theta = theta+2;
+        if(theta>=45&&theta<=135||zoomedIn){
+            aspect = 2000;
+        }
+        else{
+            aspect = 10000;
+        }
         rMatrix=mult(rMatrix,rotate(-2,0.0,1.0,0.0));
-        if(theta == 90){
-            theta = 0;
+        if(theta == 90&&!click){
             rotating = 0;
         }
+        else if(theta == 180){
+            theta = 0;
+            if(!click)
+                rotating = 0;
+        }
+    }
+    var ytop = aspect;  var bottom = -1*aspect;     var left = -1*aspect; var right = aspect;
+
+
+    if(offset>0){
+        offset-=50;
+        // trainMtx = mult(trainMtx,translate(0,0,-50));
+    }
+    else if(offset<0){
+        offset+=50;
+        // trainMtx = mult(trainMtx,translate(0,0, 50));
     }
 
-    start = 0;
+    mvMatrix = lookAt(eye, at, up);
+	pMatrix  = ortho (left, right, bottom, ytop, near, far);
 
     gl.uniformMatrix4fv( mvMatrixLoc, false, flatten(mvMatrix) );
     gl.uniformMatrix4fv( pMatrixLoc, false, flatten(pMatrix) );
     gl.uniformMatrix4fv( rMatrixLoc, false, flatten(rMatrix) );
-    
 
+    start = 0;
+    var stopPt = 1130;
     if(doorIsClosing){
         if(pos==0){
             doorIsClosing = false;
@@ -1579,26 +1881,28 @@ function render(){
                 pos-=10;
         }
     }
-    else if(doors[0].isClosed==false&&pos<1166.47){
+    else if(doors[0].isClosed==false&&pos<stopPt){
         for(var i = 0; i<doors.length; i++){
             for(var j = 0; j<doors[i].vertices.length; j++){
-                if(pos>1156.47){
-                    doors[i].vertices[j].x += 1166.47-pos;
+                if(pos>stopPt-10){
+                    doors[i].vertices[j].x += stopPt-pos;
                 }
                 else{
                     doors[i].vertices[j].x += 10;
                 }
             }
-            if(pos>1156.47)
-                doors[i].tMatrix = mult(translate(1166.47-pos,0,0),doors[i].tMatrix);
+            if(pos>stopPt-10)
+                doors[i].tMatrix = mult(translate(stopPt-pos,0,0),doors[i].tMatrix);
             else
                 doors[i].tMatrix = mult(translate(10,0,0),doors[i].tMatrix);
         }
-        if(pos>1156.47)
-            pos = 1166.47;
+        if(pos>stopPt-10)
+            pos = stopPt;
         else
             pos+=10;
     }
+
+    gl.uniformMatrix4fv( trainMtxLoc, false, flatten(trainMtx) );
     for(var i = 0; i<mainDoorsSize; i++){
         gl.uniformMatrix4fv(tMatrixLoc, false, flatten(doors[i].tMatrix));
         gl.drawArrays( gl.TRIANGLES, start, doors[i].vertices.length);

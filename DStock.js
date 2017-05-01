@@ -12,6 +12,7 @@ var sideview = 0;
 
 var totpoints=[];	var points = [];				//Array of Vertices
 var totcolors=[];   var colors = [];
+var textures = [];  var texSize = 64;
 var theta = 0;
 var wheels = [];	var bogies = []; var sides = []; var doors = [];
 var rotating = 0;
@@ -20,9 +21,20 @@ var mvMatrixLoc;
 var pMatrixLoc;
 var rMatrixLoc;
 var rMatrix;
+var tMatrixLoc;
 var mvMatrix;	//Model-view Matrix
 var pMatrix;	//Projection Matrix
 var numSideVertices;
+var doorIsClosing = false;
+var pos = 0;
+var mainDoorsSize = 40;
+
+var texCoord = [
+    vec2(0, 0),
+    vec2(0, 1),
+    vec2(1, 1),
+    vec2(1, 0)
+];
 
 window.onload = function init(){
 	//Get canvas elements
@@ -81,9 +93,18 @@ window.onload = function init(){
 	gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vPosition);
 
+    var tBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(textures), gl.STATIC_DRAW );
+    
+    var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
+    gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vTexCoord );
+
 	//Rotation Matrix
 	rMatrixLoc = gl.getUniformLocation (program, "rMatrix");
     rMatrix = mult(rotate(-1,1.0,0.0,0.0),rotate(-5,0.0,1.0,0.0));
+    tMatrixLoc = gl.getUniformLocation (program, "tMatrix");
 
 	//Model View and Projection Matrices
 	mvMatrixLoc= gl.getUniformLocation (program, "mvMatrix");
@@ -93,8 +114,43 @@ window.onload = function init(){
         rotateHoriz();
     };
 
+    document.getElementById( "doors"   ).onclick = function () {
+        if(doors[0].isClosed){
+            for(var i = 0; i<mainDoorsSize; i++){
+                doors[i].isClosed = false;
+            }
+            document.getElementById("doors").innerHTML = "Close Doors";
+        }
+        else{
+            doorIsClosing = true;
+            document.getElementById("doors").innerHTML = "Open Doors";
+        }
+    }
+
 	render();
 }
+
+function initTextures() {
+    roundelTexture = gl.createTexture();
+    roundelImage = new Image();
+    roundelImage.onload = function() { handleTextureLoaded(roundelImage,roundelTexture); }
+    roundelImage.src = 'tubelogo.png';
+}
+
+function handleTextureLoaded(image, texture) {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    // gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    // Prevents s-coordinate wrapping (repeating).
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    // Prevents t-coordinate wrapping (repeating).
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    // gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.uniformli(gl.getUniformLocation(program, "texture"), 0);
+}
+
 
 //Creates all the doors including the cab doors and front/back of train
 function buildDoors(){
@@ -150,25 +206,25 @@ function buildDoors(){
     x12 =-8078.5;
     x2 = -8278.5;
 
-    // // front side
-    // cabDoor( 2, 4, 5,12, x1, x11, x12, x2,z);
-    // cabDoor(12, 5, 7,18, x1, x11, x12, x2,z);
-    // cabDoor(18, 7, 6,16, x1, x11, x12, x2,z);
-    // cabDoor(16, 6, 4, 2, x1, x11, x12, x2,z);
-    // // blue stripe
-    // cabDoor( 0,16,18,13, x1, x11, x12, x2,z);
-    // // window front
-    // cabDoor( 4, 5, 7, 6, x1, x11, x12, x2,z);
+    // front side
+    cabDoor( 2, 4, 5,12, x1, x11, x12, x2,z);
+    cabDoor(12, 5, 7,18, x1, x11, x12, x2,z);
+    cabDoor(18, 7, 6,16, x1, x11, x12, x2,z);
+    cabDoor(16, 6, 4, 2, x1, x11, x12, x2,z);
+    // blue stripe
+    cabDoor( 0,16,18,13, x1, x11, x12, x2,z);
+    // window front
+    cabDoor( 4, 5, 7, 6, x1, x11, x12, x2,z);
 
-    // // back side
-    // cabDoor( 3, 8, 9,14, x1, x11, x12, x2,z);
-    // cabDoor(14, 9,11,17, x1, x11, x12, x2,z);
-    // cabDoor(19,11,10,17, x1, x11, x12, x2,z);
-    // cabDoor(17,10, 8, 3, x1, x11, x12, x2,z);
-    // // blue stripe
-    // cabDoor(1,17,19,15, x1, x11, x12, x2,z);
-    // // window back
-    // cabDoor( 8, 9,11,10, x1, x11, x12, x2,z);
+    // back side
+    cabDoor( 3, 8, 9,14, x1, x11, x12, x2,z);
+    cabDoor(14, 9,11,19, x1, x11, x12, x2,z);
+    cabDoor(19,11,10,17, x1, x11, x12, x2,z);
+    cabDoor(17,10, 8, 3, x1, x11, x12, x2,z);
+    // blue stripe
+    cabDoor(1,17,19,15, x1, x11, x12, x2,z);
+    // window back
+    cabDoor( 8, 9,11,10, x1, x11, x12, x2,z);
 }
 
 function door( a, b, c, d, x1,x11,x12, x2, z){
@@ -236,6 +292,8 @@ function door( a, b, c, d, x1,x11,x12, x2, z){
     var door = new Object();
     door.vertices = [];
     door.colors = [];
+    door.offset = JSON.parse(JSON.stringify(totpoints.length));
+    door.tMatrix = rotate(0.0,0.0,0.0,1.0);
     door.isClosed = true;
     // We need to parition the quad into two triangles in order for
     // WebGL to be able to render it.  In this case, we create two
@@ -244,6 +302,7 @@ function door( a, b, c, d, x1,x11,x12, x2, z){
     for ( var i = 0; i < indices.length; ++i ) {
         door.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
+        textures.push(texCoord[0]);
         if(a==4||a==8){
             door.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
@@ -317,6 +376,7 @@ function cabDoor( a, b, c, d, x1,x11,x12, x2, z){
     var door = new Object();
     door.vertices = [];
     door.colors = [];
+    door.tMatrix = rotate(0.0,0.0,0.0,1.0);
     door.isClosed = true;
     // We need to parition the quad into two triangles in order for
     // WebGL to be able to render it.  In this case, we create two
@@ -325,6 +385,7 @@ function cabDoor( a, b, c, d, x1,x11,x12, x2, z){
     for ( var i = 0; i < indices.length; ++i ) {
         door.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
+        textures.push(texCoord[0]);
         if(a==4||a==8){
             door.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
@@ -385,6 +446,7 @@ function endDoor( a, b, c, d, x, color){
     door.vertices = [];
     door.colors   = [];
     door.isClosed = true;
+    door.tMatrix = rotate(0.0,0.0,0.0,1.0);
     // We need to parition the quad into two triangles in order for
     // WebGL to be able to render it.  In this case, we create two
     // triangles from the quad indices
@@ -392,6 +454,7 @@ function endDoor( a, b, c, d, x, color){
     for ( var i = 0; i < indices.length; ++i ) {
         door.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
+        textures.push(texCoord[0]);
         if(a==2){
             door.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
@@ -743,6 +806,7 @@ function end(a,b,c,d,xF){
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
+        textures.push(texCoord[0]);
         if(a==29||a==25){
             side.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
@@ -837,6 +901,7 @@ function seating(a, b, c, d, xfIL, xfIR)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
+        textures.push(totpoints[0]);
         if(d==12||d==13||d==0||d==1){
             side.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
@@ -931,6 +996,7 @@ function sidePartInterior(a, b, c, d, x1, x11, x12, x2)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
+        textures.push(texCoord[0]);
         if(a==4||a==8){
             side.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
@@ -1019,18 +1085,31 @@ function sidePart(a, b, c, d, x1, x11, x12, x2)
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
         if(a==4||a==8){
+            textures.push(texCoord[0]);
             side.colors.push(vertexColors[0]);
             totcolors.push(vertexColors[0]);
         }
         else if(a==0||a==1){
+            textures.push(texCoord[0]);
             side.colors.push(vertexColors[1]);
             totcolors.push(vertexColors[1]);
         }
         else if(b==2&&x1==-8278.5){
+            textures.push(texCoord[0]);
             side.colors.push(vertexColors[7]);
             totcolors.push(vertexColors[7]);
         }
         else{
+            if((a==6||a==10)&&x1>-1500&&x1<-1400){
+                switch(indices[i]){
+                    case a : textures.push(texCoord[0]); break;
+                    case b : textures.push(texCoord[1]); break;
+                    case c : textures.push(texCoord[2]); break;
+                    case d : textures.push(texCoord[3]); break;
+                }
+            }
+            else
+                textures.push(texCoord[0]);
             side.colors.push(vertexColors[5])
             totcolors.push(vertexColors[5]);
         }
@@ -1095,6 +1174,7 @@ function side(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
+        textures.push(texCoord[0]);
         if(a==6||a==0||a==2){
             side.colors.push(vertexColors[3]);
             totcolors.push(vertexColors[3]);
@@ -1153,6 +1233,7 @@ function roof(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
+        textures.push(texCoord[0]);
         side.colors.push(vertexColors[7]);
         totcolors.push(vertexColors[7]);
     }
@@ -1198,6 +1279,7 @@ function under(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
+        textures.push(texCoord[0]);
         side.colors.push(vertexColors[5])
         totcolors.push(vertexColors[0]);
     }
@@ -1251,6 +1333,7 @@ function floor(a, b, c, d)
     for ( var i = 0; i < indices.length; ++i ) {
         side.vertices.push(vertices[indices[i]]);
         totpoints.push( vertices[indices[i]] );
+        textures.push(texCoord[0]);
         if(a==4||a==9||a==11){
             side.colors.push(vertexColors[3]);
             totcolors.push(vertexColors[3]);
@@ -1358,6 +1441,7 @@ function quadBogie(a,b,c,d,vertices){
 	for ( var i = 0; i < indices.length; ++i ) {
 	    points.push( vertices[indices[i]] );
 	    totpoints.push( vertices[indices[i]] );
+        textures.push(texCoord[0]);
 	    totcolors.push( [51/256,13/256,0.0,1.0] );
 	}
 }
@@ -1385,14 +1469,17 @@ function buildWheel(number){
 
 	}
     for(var i  = 0; i<wheels[number].botVertices.length; i++){
+        textures.push(texCoord[0]);
         totpoints.push(vec4(wheels[number].botVertices[i].x,wheels[number].botVertices[i].y,wheels[number].botVertices[i].z,1.0));
         totcolors.push( [rf,gf,bf,al] );
     }
     for(var i = 0; i<wheels[number].sideVertices.length; i++){
+        textures.push(texCoord[0]);
         totpoints.push(vec4(wheels[number].sideVertices[i].x,wheels[number].sideVertices[i].y,wheels[number].sideVertices[i].z,1.0));
         totcolors.push( [rs,gs,bs,al] );
     }
-    for(var i = 0; i<wheels[number].topVertices.length; i++){
+    for(var i = 0; i<wheels[number].topVertices.length; i++){        
+        textures.push(texCoord[0]);
         totpoints.push(vec4(wheels[number].topVertices[i].x,wheels[number].topVertices[i].y,wheels[number].topVertices[i].z,1.0));
         totcolors.push( [rf,gf,bf,al] );
     }
@@ -1457,15 +1544,72 @@ function render(){
             rotating = 0;
         }
     }
+
+    start = 0;
+
     gl.uniformMatrix4fv( mvMatrixLoc, false, flatten(mvMatrix) );
     gl.uniformMatrix4fv( pMatrixLoc, false, flatten(pMatrix) );
     gl.uniformMatrix4fv( rMatrixLoc, false, flatten(rMatrix) );
+    
+
+    if(doorIsClosing){
+        if(pos==0){
+            doorIsClosing = false;
+            for(var i = 0; i<doors.length; i++)
+                doors[i].isClosed = true;
+        }
+        else{
+            for(var i = 0; i<doors.length; i++){
+                for(var j = 0; j<doors[i].vertices.length; j++){
+                    if(pos<10){
+                        doors[i].vertices[j].x -= pos;
+                    }
+                    else{
+                        doors[i].vertices[j].x -= 10;
+                    }
+                }
+                if(pos<10)
+                    doors[i].tMatrix = mult(translate(-pos,0,0),doors[i].tMatrix); 
+                else
+                    doors[i].tMatrix = mult(translate(-10,0,0),doors[i].tMatrix);
+            }
+            if(pos<10)
+                pos=0;
+            else
+                pos-=10;
+        }
+    }
+    else if(doors[0].isClosed==false&&pos<1166.47){
+        for(var i = 0; i<doors.length; i++){
+            for(var j = 0; j<doors[i].vertices.length; j++){
+                if(pos>1156.47){
+                    doors[i].vertices[j].x += 1166.47-pos;
+                }
+                else{
+                    doors[i].vertices[j].x += 10;
+                }
+            }
+            if(pos>1156.47)
+                doors[i].tMatrix = mult(translate(1166.47-pos,0,0),doors[i].tMatrix);
+            else
+                doors[i].tMatrix = mult(translate(10,0,0),doors[i].tMatrix);
+        }
+        if(pos>1156.47)
+            pos = 1166.47;
+        else
+            pos+=10;
+    }
+    for(var i = 0; i<mainDoorsSize; i++){
+        gl.uniformMatrix4fv(tMatrixLoc, false, flatten(doors[i].tMatrix));
+        gl.drawArrays( gl.TRIANGLES, start, doors[i].vertices.length);
+        start = start + doors[i].vertices.length;
+    }
+    gl.uniformMatrix4fv(tMatrixLoc, false, flatten(translate(0,0,0)));
 
 
 
-    start = 0;
-    gl.drawArrays( gl.TRIANGLES, start, doors.length*doors[0].vertices.length);
-    start = start + doors.length*doors[0].vertices.length;
+    gl.drawArrays( gl.TRIANGLES, start, (doors.length-mainDoorsSize)*doors[0].vertices.length);
+    start = start + (doors.length-mainDoorsSize)*doors[0].vertices.length;
 
 
     gl.drawArrays( gl.TRIANGLES, start, numSideVertices);

@@ -2,13 +2,10 @@
 //All vertices are based on actual cm measurements in millimeters
 
 var NumVertices = 0;
-var aspect = 10000;
+var aspect = 9515;
 var eye = vec3(0,0,10000);		var at = vec3(0,0,1027);     	var up = vec3(0,1,0);
 // var ytop = aspect; 	var bottom = -1*aspect; 	var left = -1*aspect; var right = aspect;
 var near = -2000;	var far = 40000;
-
-//what view is it?
-var sideview = 0;
 
 var totpoints=[];	var points = [];				//Array of Vertices
 var totcolors=[];   var colors = [];
@@ -25,6 +22,10 @@ var tMatrixLoc;
 var trainMtxLoc;
 var trainMtx;
 var left = false;
+
+//For button disabling
+var leftPressed = false;
+var rightPressed = false;
 
 var mvMatrix;	//Model-view Matrix
 var pMatrix;	//Projection Matrix
@@ -140,44 +141,49 @@ window.onload = function init(){
     }
 
     document.getElementById("MoveInRight").onclick = function() {
-        if(totoffset==0){
-            eye = vec3(0,0,6000);
-            at = vec3(0,0,5500);
-            rMatrix = mult(rMatrix,mult(rotate(-2,0.0,0.0,1.0),rotate(-1,0.0,1.0,0.0)));
-            aspect = 2000;
+        if(!rightPressed&&!leftPressed){
+            rightPressed=true;
+            if(totoffset==0){
+                eye = vec3(0,0,6500);
+                at = vec3(0,0,6000);
+                rMatrix = mult(rMatrix,mult(rotate(-2,0.0,0.0,1.0),rotate(-1.0,0.0,1.0,0.0)));
+                aspect = 2000;
+            }
+            if(totoffset<=7000){
+                offset += 500;
+                totoffset += 500;
+            }
         }
-        if(totoffset<=7000){
-            offset += 500;
-            totoffset += 500;
-        }
-        
     }
     document.getElementById("MoveInLeft").onclick = function() {
-        left = true;
-        if(totoffset==0){
-            eye = vec3(0,0,6000);
-            at = vec3(0,0,5500);
-            rMatrix = mult(rMatrix,mult(rotate(-2,0.0,0.0,1.0),rotate(9,0.0,1.0,0.0)));
-            aspect = 2000;
-        }
-        if(totoffset<=7000){
-            offset += 500;
-            totoffset += 500;
-        }
-        
+        if(!leftPressed&&!rightPressed){
+            leftPressed = true;
+            left = true;
+            if(totoffset==0){
+                eye = vec3(0,0,6500);
+                at = vec3(0,0,6000);
+                rMatrix = mult(rMatrix,mult(rotate(-2,0.0,0.0,1.0),rotate( 9.0,0.0,1.0,0.0)));
+                aspect = 2000;
+            }
+            if(totoffset<=7000){
+                offset += 500;
+                totoffset += 500;
+            }
+        }        
     }
     document.getElementById("MoveOut").onclick = function() {
         if(totoffset==500){
             eye = vec3(0,0,10000);
             at = vec3(0,0,1027);
+            aspect = 2000;
             if(left){
-                rMatrix = mult(rMatrix,mult(rotate(2,0.0,0.0,1.0),rotate(-9,0.0,1.0,0.0)));
-                left = false;
+                rMatrix = mult(rMatrix,mult(rotate(-9.0,0.0,1.0,0.0),rotate( 2,0.0,0.0,1.0)));
+                left = false; leftPressed = false;
             }
-            else
-                rMatrix = mult(rMatrix,mult(rotate(2,0.0,0.0,1.0),rotate(1,0.0,1.0,0.0)));
-
-            aspect = 3000;
+            else{
+                rMatrix = mult(rMatrix,mult(rotate( 1.0,0.0,1.0,0.0),rotate( 2,0.0,0.0,1.0)));
+                rightPressed = false;
+            }
         }
         if(totoffset>=500){
             offset -= 500;
@@ -187,10 +193,14 @@ window.onload = function init(){
     }
     document.getElementById("Zoom").onclick = function() {
         if(zoomedIn){
+            // eye = vec3(0,0,10000);
+            // at = vec3(0,0,1027);
             aspect = aspect*5;
             zoomedIn = false;
         }
         else{
+            // eye = vec3(0,0,500);
+            // at = vec3(0,0,0);
             aspect = aspect/5;
             zoomedIn = true;
         }
@@ -1752,18 +1762,17 @@ function buildWheel(number){
         wheels[number].sideVertices.push(x,y,vertex[2]+depth);
 
 		wheels[number].topVertices.push(x,y,vertex[2]+depth);
-
 	}
     for(var i  = 0; i<wheels[number].botVertices.length; i++){
-        totpoints.push(vec4(wheels[number].botVertices[i].x,wheels[number].botVertices[i].y,wheels[number].botVertices[i].z,1.0));
+        totpoints.push(vec4(wheels[number].botVertices[i],1.0));
         totcolors.push( [rf,gf,bf,al] );
     }
     for(var i = 0; i<wheels[number].sideVertices.length; i++){
-        totpoints.push(vec4(wheels[number].sideVertices[i].x,wheels[number].sideVertices[i].y,wheels[number].sideVertices[i].z,1.0));
+        totpoints.push(vec4(wheels[number].sideVertices[i],1.0));
         totcolors.push( [rs,gs,bs,al] );
     }
     for(var i = 0; i<wheels[number].topVertices.length; i++){    
-        totpoints.push(vec4(wheels[number].topVertices[i].x,wheels[number].topVertices[i].y,wheels[number].topVertices[i].z,1.0));
+        totpoints.push(vec4(wheels[number].topVertices[i],1.0));
         totcolors.push( [rf,gf,bf,al] );
     }
 
@@ -1799,14 +1808,6 @@ function rotateHoriz(){
     }
     else{
         rotating = 1;
-        sideview = !sideview;
-        // if(!sideview){
-        // }
-        // else{
-        // }
-//test line below delete later
-        // ytop = 2000; bottom = -2000; left = -2000; right = 2000; near = -2000; far = 25000;
-
     }
 }
 
@@ -1816,14 +1817,42 @@ function render(){
 
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	if(rotating){
-        theta = theta+2;
-        if(theta>=45&&theta<=135||zoomedIn){
+        theta = theta+1;
+        if(theta==90||zoomedIn){
             aspect = 2000;
         }
+        // else if(theta<=110||theta>=70){
+        //     aspect = 3000;
+        // }
+        // else if(theta<=120||theta>=60){
+        //     aspect = 4000;
+        // }
+        // else if(theta<=130||theta>=50){
+        //     aspect = 5000;
+        // }
+        // else if(theta<=140||theta>=40){
+        //     aspect = 6000;
+        // }
+        // else if(theta<=150||theta>=30){
+        //     aspect = 7000;
+        // }
+        // else if(theta<=150||theta>=30){
+        //     aspect = 7000;
+        // }
+        // else if(theta<5||theta>175){
+        //     // window.alert(aspect);
+        //     aspect = 9515;
+        // }
         else{
-            aspect = 10000;
+            if(theta<90){
+                aspect = 83.5*(90-theta)+2000;
+            }
+            else{
+                aspect = 83.5*(theta-90)+2000;
+            }
+            // aspect = 10000;
         }
-        rMatrix=mult(rMatrix,rotate(-2,0.0,1.0,0.0));
+        rMatrix=mult(rMatrix,rotate(-1,0.0,1.0,0.0));
         if(theta == 90&&!click){
             rotating = 0;
         }
@@ -1913,7 +1942,8 @@ function render(){
 
 
     gl.drawArrays( gl.TRIANGLES, start, (doors.length-mainDoorsSize)*doors[0].vertices.length);
-    start = start + (doors.length-mainDoorsSize)*doors[0].vertices.length;
+    for(var i = mainDoorsSize+1; i<doors.length; i++)
+        start = start + doors[i].vertices.length;
 
 
     gl.drawArrays( gl.TRIANGLES, start, numSideVertices);
@@ -1932,7 +1962,7 @@ function render(){
         start = start + wheels[i].topVertices.length;
     }
 
-        // for(var i = 0; i<wheels.length; i++){
+    // for(var i = 0; i<wheels.length; i++){
     //     drawWheelFace(i);
     //     drawWheelBack(i);
     //     drawWheelSide(i);

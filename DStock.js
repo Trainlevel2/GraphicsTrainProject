@@ -1,10 +1,9 @@
 //Eric Mendoza-Conner
-//All vertices are based on actual cm measurements in millimeters
-
+//All vertices are based on actual measurements in millimeters
 var NumVertices = 0;
 var aspect = 9515;
 var eye = vec3(0,0,10000);		var at = vec3(0,0,1027);     	var up = vec3(0,1,0);
-// var ytop = aspect; 	var bottom = -1*aspect; 	var left = -1*aspect; var right = aspect;
+// var ytop = aspect; 	var bottom = -1*aspect; 	var left = -1*aspect; var right = aspect; -- code moved to render function
 var near = -2000;	var far = 40000;
 
 var totpoints=[];	var points = [];				//Array of Vertices
@@ -199,14 +198,10 @@ window.onload = function init(){
     }
     document.getElementById("Zoom").onclick = function() {
         if(zoomedIn){
-            // eye = vec3(0,0,10000);
-            // at = vec3(0,0,1027);
             aspect = aspect*5;
             zoomedIn = false;
         }
         else{
-            // eye = vec3(0,0,500);
-            // at = vec3(0,0,0);
             aspect = aspect/5;
             zoomedIn = true;
         }
@@ -647,18 +642,8 @@ function buildSkeleton()
     floor(11, 6, 2, 9 );
 
 	//Build a Specific Side
-    // side( 1, 0, 2, 3 ); //bottom
-    
-    // side(10,11, 7,15 ); //top back side
-    // side(13, 3,11,10 ); //bottom back side
     side(2, 13,15, 6 ); //red side back
-
-    // side( 3, 1, 9,11 ); //bottom rear
-    // side(11, 9, 5, 7 ); //top rear
-    // side( 6, 2, 0, 4 ); //front
     side( 4, 6, 7, 5 ); //top
-    // side( 5,14, 8, 9 ); //top front side
-    // side( 9, 8,12, 1 ); //bottom front side
     side( 0,12,14, 4 ); //cab front side
 
     var x1 = -8278.5;
@@ -1715,15 +1700,6 @@ function buildBogie(number){
     quadBogie( 4+8*number, 6+8*number, 5+8*number, 7+8*number ,vertices);
     quadBogie( 5+8*number, 4+8*number, 0+8*number, 1+8*number ,vertices);
 
-    /*
-
-    side( 1, 0, 2, 3 );
-    side( 2, 3, 7, 6 );
-    side( 3, 1, 5, 7 );
-    side( 6, 2, 0, 4 );
-    side( 4, 6, 7, 5 );
-    side( 5, 4, 0, 1 );
-    */
     var bogie = new Object();
     bogie.color = vertexColors[0];
     bogie.vertices = points;
@@ -1911,7 +1887,6 @@ function render(){
             else{
                 aspect = 83.5*(theta-90)+2000;
             }
-            // aspect = 10000;
         }
         rMatrix=mult(rMatrix,rotate(-1,0.0,1.0,0.0));
         if(theta == 90&&!click){
@@ -1928,11 +1903,9 @@ function render(){
 
     if(offset>0){
         offset-=50;
-        // trainMtx = mult(trainMtx,translate(0,0,-50));
     }
     else if(offset<0){
         offset+=50;
-        // trainMtx = mult(trainMtx,translate(0,0, 50));
     }
 
     mvMatrix = lookAt(eye, at, up);
@@ -2023,8 +1996,7 @@ function render(){
         gl.drawArrays(gl.TRIANGLES, start, (wheels[i].topVertices.length-1)*3);
         start = start + (wheels[i].topVertices.length-1)*3;
     }
-    // for(var i = 0; i<4; i++)
-        gl.drawArrays(gl.TRIANGLES, start, totpoints.length-start);
+    gl.drawArrays(gl.TRIANGLES, start, totpoints.length-start);
 	window.requestAnimationFrame(render,canvas);
 }
 

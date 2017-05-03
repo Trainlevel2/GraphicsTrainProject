@@ -1790,6 +1790,25 @@ function buildWheel(number){
         textures.push(texCoord[5]);
         totcolors.push( [rs,gs,bs,al] );
     }
+    totpoints.push(wheels[number].sideVertices[wheels[number].sideVertices.length-2]);
+    textures.push(texCoord[0]);
+    totcolors.push( [rs,gs,bs,al] );
+    totpoints.push(wheels[number].sideVertices[wheels[number].sideVertices.length-1]);
+    textures.push(texCoord[4]);
+    totcolors.push( [rs,gs,bs,al] );
+    totpoints.push(wheels[number].sideVertices[0]);
+    textures.push(texCoord[5]);
+    totcolors.push( [rs,gs,bs,al] );
+    totpoints.push(wheels[number].sideVertices[wheels[number].sideVertices.length-1]);
+    textures.push(texCoord[0]);
+    totcolors.push( [rs,gs,bs,al] );
+    totpoints.push(wheels[number].sideVertices[0]);
+    textures.push(texCoord[4]);
+    totcolors.push( [rs,gs,bs,al] );
+    totpoints.push(wheels[number].sideVertices[1]);
+    textures.push(texCoord[5]);
+    totcolors.push( [rs,gs,bs,al] );
+
     for(var i  = 1; i<wheels[number].topVertices.length; i++){
         totpoints.push(wheels[number].topVertices[i]);
         textures.push(texCoord[0]);
@@ -1939,8 +1958,9 @@ function render(){
     for(var i = 0; i<wheels.length; i++){
         gl.drawArrays(gl.TRIANGLES, start, (wheels[i].botVertices.length-1)*3);
         start = start + (wheels[i].botVertices.length-1)*3;
-        gl.drawArrays(gl.TRIANGLES, start, (wheels[i].sideVertices.length-2)*3);
-        start = start + (wheels[i].sideVertices.length-2)*3;
+        gl.drawArrays(gl.TRIANGLES, start, (wheels[i].sideVertices.length-2)*3 + 6);
+        start = start + (wheels[i].sideVertices.length-2)*3 + 6;
+
         gl.drawArrays(gl.TRIANGLES, start, (wheels[i].topVertices.length-1)*3);
         start = start + (wheels[i].topVertices.length-1)*3;
     }

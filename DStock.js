@@ -22,6 +22,7 @@ var tMatrixLoc;
 var trainMtxLoc;
 var trainMtx;
 var left = false;
+var circlePts = [];
 
 //For button disabling
 var leftPressed = false;
@@ -67,7 +68,7 @@ window.onload = function init(){
     // Build the 4 sets of double doors and 2 single doors
     buildDoors();
 
-	//Buld the Skeleton for the outside of train
+	// Buld the Skeleton for the outside of train
 	buildSkeleton();
 
     numSideVertices = 0;
@@ -97,6 +98,7 @@ window.onload = function init(){
 	var vBuffer = gl.createBuffer();
 	gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
 	gl.bufferData( gl.ARRAY_BUFFER, flatten(totpoints), gl.STATIC_DRAW );
+
 
 	// Associate shader variables with data buffer
 	var vPosition = gl.getAttribLocation( program, "vPosition" );
@@ -1641,20 +1643,20 @@ function floor(a, b, c, d)
 }
 
 function buildBogie(number){
-
+    var upfactor = 140;
 	var vertices = [
-		//wheel center points, diameter is 915
+		//wheel center points, diameter is 888
         //left bogie
-  		vec4(-7086.5,-1743, 717.5,1), //front left wheel
-  		vec4(-4798.5,-1743, 717.5,1), //right of front left wheel
-  		vec4(-6699.5,-1743,-717.5,1), //back left wheel
-  		vec4(-4413.5,-1743,-717.5,1), //right of back left wheel
+  		vec4(-7086.5,-1743+upfactor, 717.5,1), //front left wheel
+  		vec4(-4798.5,-1743+upfactor, 717.5,1), //right of front left wheel
+  		vec4(-7086.5,-1743+upfactor,-717.5,1), //back left wheel
+  		vec4(-4798.5,-1743+upfactor,-717.5,1), //right of back left wheel
 
   		//right bogie
-  		vec4( 4798.5,-1743, 717.5,1), //left of front right wheel
-  		vec4( 7086.5,-1743, 717.5,1), //front right wheel
-  		vec4( 4798.5,-1743,-717.5,1), //left of back right wheel
-  		vec4( 7086.5,-1743,-717.5,1)  //back right wheel
+  		vec4( 4798.5,-1743+upfactor, 717.5,1), //left of front right wheel
+  		vec4( 7086.5,-1743+upfactor, 717.5,1), //front right wheel
+  		vec4( 4798.5,-1743+upfactor,-717.5,1), //left of back right wheel
+  		vec4( 7086.5,-1743+upfactor,-717.5,1)  //back right wheel
     ];
     var vertexColors = [
         [ 0.0, 0.0, 0.0, 1.0 ],  // black
@@ -1671,12 +1673,11 @@ function buildBogie(number){
     	var wheel = new Object();
     	wheel.radius = 394;
     	wheel.location = vertices[i];
-    	wheel.color = vertexColors[0];
+    	wheel.color = vertexColors[5];
     	wheel.sideVertices = [];
     	wheel.topVertices = [];
     	wheel.botVertices = [];
-        wheel.buffers = [];
-    	wheel.segments = 32;
+    	wheel.segments = 16;
     	wheels.push(wheel);
     }
 
@@ -1685,22 +1686,22 @@ function buildBogie(number){
     	//left bogie
     	vec4(-7480.5,-1027, 716,1), 
     	vec4(-4404.5,-1027, 716,1), 
-    	vec4(-7480.5,-1940, 716,1), 
-    	vec4(-4404.5,-1940, 716,1), 
+    	vec4(-7480.5,-1940+upfactor, 716,1), 
+    	vec4(-4404.5,-1940+upfactor, 716,1), 
         vec4(-7480.5,-1027,-716,1), 
         vec4(-4404.5,-1027,-716,1), 
-        vec4(-7480.5,-1940,-716,1), 
-        vec4(-4404.5,-1940,-716,1),
+        vec4(-7480.5,-1940+upfactor,-716,1), 
+        vec4(-4404.5,-1940+upfactor,-716,1),
 
     	//right bogie
         vec4( 4404.5,-1027, 716,1), 
         vec4( 7480.5,-1027, 716,1), 
-        vec4( 4404.5,-1940, 716,1), 
-        vec4( 7480.5,-1940, 716,1), 
+        vec4( 4404.5,-1940+upfactor, 716,1), 
+        vec4( 7480.5,-1940+upfactor, 716,1), 
         vec4( 4404.5,-1027,-716,1), 
         vec4( 7480.5,-1027,-716,1), 
-        vec4( 4404.5,-1940,-716,1), 
-        vec4( 7480.5,-1940,-716,1)
+        vec4( 4404.5,-1940+upfactor,-716,1), 
+        vec4( 7480.5,-1940+upfactor,-716,1)
     ];
 
     quadBogie( 1+8*number, 0+8*number, 2+8*number, 3+8*number ,vertices);
@@ -1744,62 +1745,66 @@ function quadBogie(a,b,c,d,vertices){
 
 function buildWheel(number){
 	var vertex = wheels[number].location;
-	var depth = 1.5; var radius = wheels[number].radius;
-	var theta = (Math.PI/180) * (360/wheels[number].segments);
+	var depth = 100; var radius = wheels[number].radius;
+	var theta = Math.PI*2/wheels[number].segments;
     var rs = 217/256;   var gs = 217/256;   var bs = 217/256;
     var rf = 0.0;         var gf = 0.0;         var bf = 0.0;
     var al = 1.0;
-	for(var i = 0; i<=wheels[number].segments; i++){
-		var x = Math.cos(theta*i) + vertex[0];
-		var y = Math.sin(theta*i) + vertex[1];
-		wheels[number].botVertices.push(x,y,vertex[2]);
 
-		wheels[number].sideVertices.push(x,y,vertex[2]);
-
-		if(vertex[2]>0)
-			depth = depth*-1.0;
-
-        wheels[number].sideVertices.push(x,y,vertex[2]+depth);
-
-		wheels[number].topVertices.push(x,y,vertex[2]+depth);
+	for(var i = 0; i<wheels[number].segments; i++){
+		var x = Math.cos(theta*i)*radius + vertex[0];
+		var y = Math.sin(theta*i)*radius + vertex[1];
+		wheels[number].botVertices.push(vec4(x,y,vertex[2],1.0));
+        wheels[number].sideVertices.push(vec4(x,y,vertex[2],1.0));
+        if(vertex[2]<0){
+            wheels[number].sideVertices.push(vec4(x,y,vertex[2]-depth,1.0));
+            wheels[number].topVertices.push(vec4(x,y,vertex[2]-depth,1.0));
+        }
+        else{
+            wheels[number].sideVertices.push(vec4(x,y,vertex[2]+depth,1.0));
+            wheels[number].topVertices.push(vec4(x,y,vertex[2]+depth,1.0));
+        }
 	}
-    for(var i  = 0; i<wheels[number].botVertices.length; i++){
-        totpoints.push(vec4(wheels[number].botVertices[i],1.0));
+    for(var i  = 1; i<wheels[number].botVertices.length; i++){
+        totpoints.push(wheels[number].botVertices[i]);
+        textures.push(texCoord[0]);
+        totcolors.push( [rf,gf,bf,al] );
+        totpoints.push(vertex);
+        textures.push(texCoord[4]);
+        totcolors.push( [rf,gf,bf,al] );
+        if(i+1<wheels[number].botVertices.length)
+            totpoints.push(wheels[number].botVertices[i+1]);
+        else
+            totpoints.push(wheels[number].botVertices[1]);
+        textures.push(texCoord[5]);
         totcolors.push( [rf,gf,bf,al] );
     }
-    for(var i = 0; i<wheels[number].sideVertices.length; i++){
-        totpoints.push(vec4(wheels[number].sideVertices[i],1.0));
+    for(var i = 0; i<wheels[number].sideVertices.length-2; i++){
+        totpoints.push(wheels[number].sideVertices[i]);
+        textures.push(texCoord[0]);
+        totcolors.push( [rs,gs,bs,al] );
+        totpoints.push(wheels[number].sideVertices[i+1]);
+        textures.push(texCoord[4]);
+        totcolors.push( [rs,gs,bs,al] );
+        totpoints.push(wheels[number].sideVertices[i+2]);
+        textures.push(texCoord[5]);
         totcolors.push( [rs,gs,bs,al] );
     }
-    for(var i = 0; i<wheels[number].topVertices.length; i++){    
-        totpoints.push(vec4(wheels[number].topVertices[i],1.0));
+    for(var i  = 1; i<wheels[number].topVertices.length; i++){
+        totpoints.push(wheels[number].topVertices[i]);
+        textures.push(texCoord[0]);
+        totcolors.push( [rf,gf,bf,al] );
+        totpoints.push(vertex);
+        textures.push(texCoord[4]);
+
+        totcolors.push( [rf,gf,bf,al] );
+        if(i+1<wheels[number].topVertices.length)
+            totpoints.push(wheels[number].topVertices[i+1]);
+        else
+            totpoints.push(wheels[number].topVertices[1]);
+        textures.push(texCoord[5]);
         totcolors.push( [rf,gf,bf,al] );
     }
-
-
-    // //Vertex buffer for TOP
-    // var vertexBufferWheelFace = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferWheelFace);
-    // gl.bufferData(gl.ARRAY_BUFFER, flatten(wheels[number].topVertices), gl.STATIC_DRAW);
-    // vertexBufferWheelFace.nmbrOfVertices = wheels[number].topVertices.length/7;
-    // gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    // wheels[number].buffers.push(vertexBufferWheelFace);
-
-    // // Vertexbuffer for BOTTOM
-    // var vertexBufferWheelBack = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferWheelBack);
-    // gl.bufferData(gl.ARRAY_BUFFER, flatten(wheels[number].botVertices), gl.STATIC_DRAW);
-    // vertexBufferWheelBack.nmbrOfVertices = wheels[number].botVertices.length/7; //xyz + rgba = 7
-    // gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    // wheels[number].buffers.push(vertexBufferWheelBack);
-
-    // //Vertex buffer for cylinder SIDES
-    // var vertexBufferWheelSide = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferWheelSide);
-    // gl.bufferData(gl.ARRAY_BUFFER, flatten(wheels[number].sideVertices), gl.STATIC_DRAW);
-    // vertexBufferWheelSide.nmbrOfVertices = wheels[number].sideVertices.length / 7; //xyz + rgba = 7
-    // gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    // wheels[number].buffers.push(vertexBufferWheelSide);
 }
 
 function rotateHoriz(){
@@ -1821,28 +1826,6 @@ function render(){
         if(theta==90||zoomedIn){
             aspect = 2000;
         }
-        // else if(theta<=110||theta>=70){
-        //     aspect = 3000;
-        // }
-        // else if(theta<=120||theta>=60){
-        //     aspect = 4000;
-        // }
-        // else if(theta<=130||theta>=50){
-        //     aspect = 5000;
-        // }
-        // else if(theta<=140||theta>=40){
-        //     aspect = 6000;
-        // }
-        // else if(theta<=150||theta>=30){
-        //     aspect = 7000;
-        // }
-        // else if(theta<=150||theta>=30){
-        //     aspect = 7000;
-        // }
-        // else if(theta<5||theta>175){
-        //     // window.alert(aspect);
-        //     aspect = 9515;
-        // }
         else{
             if(theta<90){
                 aspect = 83.5*(90-theta)+2000;
@@ -1942,7 +1925,7 @@ function render(){
 
 
     gl.drawArrays( gl.TRIANGLES, start, (doors.length-mainDoorsSize)*doors[0].vertices.length);
-    for(var i = mainDoorsSize+1; i<doors.length; i++)
+    for(var i = mainDoorsSize; i<doors.length; i++)
         start = start + doors[i].vertices.length;
 
 
@@ -1954,67 +1937,16 @@ function render(){
         start = start + bogies[i].vertices.length;
     }
     for(var i = 0; i<wheels.length; i++){
-        gl.drawArrays(gl.TRIANGLE_FAN, start, wheels[i].botVertices.length);
-        start = start + wheels[i].botVertices.length;
-        gl.drawArrays(gl.TRIANGLE_FAN, start, wheels[i].sideVertices.length);
-        start = start + wheels[i].sideVertices.length;
-        gl.drawArrays(gl.TRIANGLE_FAN, start, wheels[i].topVertices.length);
-        start = start + wheels[i].topVertices.length;
+        gl.drawArrays(gl.TRIANGLES, start, (wheels[i].botVertices.length-1)*3);
+        start = start + (wheels[i].botVertices.length-1)*3;
+        gl.drawArrays(gl.TRIANGLES, start, (wheels[i].sideVertices.length-2)*3);
+        start = start + (wheels[i].sideVertices.length-2)*3;
+        gl.drawArrays(gl.TRIANGLES, start, (wheels[i].topVertices.length-1)*3);
+        start = start + (wheels[i].topVertices.length-1)*3;
     }
-
-    // for(var i = 0; i<wheels.length; i++){
-    //     drawWheelFace(i);
-    //     drawWheelBack(i);
-    //     drawWheelSide(i);
-    // }
 	window.requestAnimationFrame(render,canvas);
 }
 
-// function drawWheelFace(num){
-//     var stride = (3+4)*4;
-//     gl.bindBuffer(gl.ARRAY_BUFFER, wheels[num].buffers[0]);
-//     vPosition = gl.getAttribLocation(program, 'vPosition');
-//     gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, stride, 0);
-//     gl.enableVertexAttribArray(vPosition);
-
-//     var colorOffset = 3*4;
-//     vColor = gl.getAttribLocation(program, 'vColor');
-//     gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, stride, colorOffset);
-//     gl.enableVertexAttribArray(vColor);
-
-//     gl.drawArrays(gl.TRIANGLE_FAN, 0, wheels[num].buffers[0].nmbrOfVertices);
-// }
-
-// function drawWheelBack(num){
-//     var stride = (3+4)*4;
-//     gl.bindBuffer(gl.ARRAY_BUFFER, wheels[num].buffers[1]);
-//     vPosition = gl.getAttribLocation(program, 'vPosition');
-//     gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, stride, 0);
-//     gl.enableVertexAttribArray(vPosition);
-
-//     var colorOffset = 3*4;
-//     vColor = gl.getAttribLocation(program, 'vColor');
-//     gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, stride, colorOffset);
-//     gl.enableVertexAttribArray(vColor);
-
-//     gl.drawArrays(gl.TRIANGLE_FAN, 0, wheels[num].buffers[1].nmbrOfVertices);
-
-// }
-// function drawWheelSide(num){
-//     var stride = (3+4)*4;
-//     gl.bindBuffer(gl.ARRAY_BUFFER, wheels[num].buffers[2]);
-//     vPosition = gl.getAttribLocation(program, 'vPosition');
-//     gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, stride, 0);
-//     gl.enableVertexAttribArray(vPosition);
-
-//     var colorOffset = 3*4;
-//     vColor = gl.getAttribLocation(program, 'vColor');
-//     gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, stride, colorOffset);
-//     gl.enableVertexAttribArray(vColor);
-
-//     gl.drawArrays(gl.TRIANGLE_FAN, 0, wheels[num].buffers[2].nmbrOfVertices);
-
-// }
 
 window.onresize = function(){
 	var min = innerWidth;

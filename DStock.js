@@ -23,6 +23,7 @@ var trainMtxLoc;
 var trainMtx;
 var left = false;
 var circlePts = [];
+var numvertices = 0;
 
 //For button disabling
 var leftPressed = false;
@@ -82,6 +83,9 @@ window.onload = function init(){
 
 	for(var i = 0; i<wheels.length; i++)
 		buildWheel(i);
+
+    for(var i = 0; i<4; i++)
+        buildPole(i);
 
     trainMtx = translate(0,0,0);
 	//After generating each cube, create everything to render each cube
@@ -1826,6 +1830,61 @@ function buildWheel(number){
     }
 }
 
+function buildPole(number){
+    var vertex = -6123.68+4083.55*number;
+    var radius = 50;
+    var theta = Math.PI*2/16;
+    var rs = 0.0;   var gs = 100/256;   var bs = 0.0;
+    var al = 1.0;
+    var vertices = [];
+
+    for(var i = 0; i<16; i++){
+        var x = Math.cos(theta*i)*radius + vertex;
+        var z = Math.sin(theta*i)*radius;
+        vertices.push(vec4(x,-977,z,1.0));
+        vertices.push(vec4(x,1027,z,1.0));
+    }
+    for(var i = 0; i<vertices.length-2; i++){
+        totpoints.push(vertices[i]);
+        textures.push(texCoord[0]);
+        totcolors.push( [rs,gs,bs,al] );
+        
+        totpoints.push(vertices[i+1]);
+        textures.push(texCoord[4]);
+        totcolors.push( [rs,gs,bs,al] );
+
+        totpoints.push(vertices[i+2]);
+        textures.push(texCoord[5]);
+        totcolors.push( [rs,gs,bs,al] );
+    }
+    totpoints.push(vertices[vertices.length-2]);
+    textures.push(texCoord[0]);
+    totcolors.push( [rs,gs,bs,al] );
+
+    totpoints.push(vertices[vertices.length-1]);
+    textures.push(texCoord[4]);
+    totcolors.push( [rs,gs,bs,al] );
+
+    totpoints.push(vertices[0]);
+    textures.push(texCoord[5]);
+    totcolors.push( [rs,gs,bs,al] );
+
+    totpoints.push(vertices[vertices.length-1]);
+    textures.push(texCoord[0]);
+    totcolors.push( [rs,gs,bs,al] );
+
+    totpoints.push(vertices[0]);
+    textures.push(texCoord[4]);
+    totcolors.push( [rs,gs,bs,al] );
+    
+    totpoints.push(vertices[1]);
+    textures.push(texCoord[5]);
+    totcolors.push( [rs,gs,bs,al] );
+
+    numvertices = vertices.length;
+    vertices = [];
+}
+
 function rotateHoriz(){
     if(rotating){
         rotating = 0;
@@ -1964,6 +2023,8 @@ function render(){
         gl.drawArrays(gl.TRIANGLES, start, (wheels[i].topVertices.length-1)*3);
         start = start + (wheels[i].topVertices.length-1)*3;
     }
+    // for(var i = 0; i<4; i++)
+        gl.drawArrays(gl.TRIANGLES, start, totpoints.length-start);
 	window.requestAnimationFrame(render,canvas);
 }
 

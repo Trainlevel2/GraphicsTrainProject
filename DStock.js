@@ -1834,7 +1834,7 @@ function buildPole(number){
     var vertex = -6123.68+4083.55*number;
     var radius = 50;
     var theta = Math.PI*2/16;
-    var rs = 0.0;   var gs = 100/256;   var bs = 0.0;
+    var rs = 0.0;   var gs = 150/256;   var bs = 0.0;
     var al = 1.0;
     var vertices = [];
 
